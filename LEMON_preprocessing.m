@@ -19,7 +19,7 @@ parentfolder = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Raw_BIDS_ID\';
 % Initialize the ALLERP structure and CURRENTERP
 % ALLERP = buildERPstruct([]);
 % CURRENTERP = 0;
-% Borde inte behöva ERP alls va?
+% ALLEEG??
 
 % Loop through all subjects
 for s = 1:numsubjects
