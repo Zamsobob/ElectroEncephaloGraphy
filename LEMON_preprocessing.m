@@ -32,6 +32,12 @@ for s = 1:numsubjects
     % Import data
     headerfile = [subject '.vhdr'];
     EEG = pop_loadbv([ subjectfolder '\'], headerfile);
+    % Problem after s = 117. sub-010203 worked and then error:
+    
+    % Output argument "CONF" (and maybe others) not assigned during call to "readbvconf".
+    % Error in pop_loadbv (line 375)
+    %         MRK = readbvconf(path, [hdrfile(1:end-4) 'vmrk' ]);
+    % Error in Initial (line 34)
     
     % Rename data
     
