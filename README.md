@@ -1,0 +1,2 @@
+# ElectroEncephaloGraphy
+EEG scripts
