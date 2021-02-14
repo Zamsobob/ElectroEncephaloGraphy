@@ -77,7 +77,8 @@ for s = 1:numsubjects
     EEG = pop_editset(EEG, 'setname', [subject '_Preprocess']);
     EEG = pop_saveset( EEG, 'filename', [subject '_Preprocess.set'],'filepath', newdir);
     
-    % Extract RS data. Separate into EO and EC. ICA.
+    % Extract RS data. Separate into EO and EC. ICA. EOG channels.
     
 end
-     
+    
+fprintf('\n\n\n**** FINISHED ****\n\n\n');  
