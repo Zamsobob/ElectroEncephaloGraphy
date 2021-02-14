@@ -71,19 +71,18 @@ for s = 1 %:numsubjects
     % RESAMPLE DATASET FROM 512 TO 256 HZ
     EEG = pop_resample(EEG, 256);
     
-    % HIGH PAS FILTER THE DATA AT 1 HZ. NOTE THAT EEGLALB USES PASS-BAND
-    % EDGE, THEREFORE 1/2 = 0.5 HZ
-    EEG = pop_eegfiltnew(EEG, 1, [], 1650, 0, [], 0);
+    % HIGH PAS FILTER THE DATA AT 1 HZ
+    EEG = pop_eegfiltnew(EEG, 'locutoff',1,'plotfreqz',1);
     
     % LOW-PAS FILTER THE DATA AT 40 HZ
-    EEG = pop_eegfiltnew(EEG, [], 40, 166, 0, [], 0);
+    EEG = pop_eegfiltnew(EEG, 'hicutoff',40,'plotfreqz',1);
     EEG.setname = subject
 
     % SAVE IN CREATED FOLDER
     % EEG = pop_editset(EEG, 'setname', [subject '_Preprocess']);
     % EEG = pop_saveset( EEG, 'filename', [subject '_Preprocess.set'],'filepath', newdir);
     
-    % TO DO: Extract RS data. Separate into EO and EC. Epochs. ICA. EOG channels.
+    % TO DO: Extract RS data. Split into EO and EC. Overlapping epochs. ICA. EOG channels.
     % Reject data/channels. Interpolate bad electrodes. Clean rawdata.
     
     %% Test to extract resting-state and state-dependent data.
