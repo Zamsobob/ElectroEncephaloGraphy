@@ -71,7 +71,7 @@ for s = 1 %:numsubjects
     % RESAMPLE DATASET FROM 512 TO 256 HZ
     EEG = pop_resample(EEG, 256);
     
-    % HIGH PAS FILTER THE DATA AT 1 HZ
+    % HIGH PAS FILTER THE DATA AT 1 HZ. --Clen rawdata and ASR?--
     EEG = pop_eegfiltnew(EEG, 'locutoff',1,'plotfreqz',1);
     
     % LOW-PAS FILTER THE DATA AT 40 HZ
@@ -84,7 +84,7 @@ for s = 1 %:numsubjects
     
     % TO DO: Extract RS data. Split into EO and EC. Overlapping epochs. ICA. EOG channels.
     % Reject data/channels. Interpolate bad electrodes. Clean rawdata.
-    
+    % GOOD place to save and examine raw data.
     %% Test to extract resting-state and state-dependent data.
     
     % DEFINE WHERE TO SPLIT DATASETS (RESTING-STATE AND STATE-DEPENDENT
