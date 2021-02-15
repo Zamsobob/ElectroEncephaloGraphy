@@ -5,7 +5,7 @@ clc;
 % MAKE SURE EEGLAB IS IN PATH
 addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0')
 % WORKING DIRECTORY SHOULD BE D:
-cd 'D:\FAA_Study_2021\Skovde\Skovde_Traits_FAA\Skovde_EEG'
+cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
 
 % DEFINE THE SET OF SUBJECTS
@@ -14,39 +14,38 @@ cd 'D:\FAA_Study_2021\Skovde\Skovde_Traits_FAA\Skovde_EEG'
 subject_list = {'sub-001', 'sub-003', 'sub-004', 'sub-005', 'sub-006', 'sub-007', 'sub-008', 'sub-009', 'sub-010', 'sub-011', 'sub-012', 'sub-013', 'sub-014', 'sub-015', 'sub-016', 'sub-017', 'sub-018', 'sub-019', 'sub-020', 'sub-021', 'sub-022', 'sub-023', 'sub-025', 'sub-026', 'sub-027', 'sub-028', 'sub-029', 'sub-030', 'sub-031', 'sub-032'};
 numsubjects = length(subject_list);
 
-% PATH TO THE PARENT FOLDERS
-skovdefolder = 'D:\FAA_Study_2021\Skovde\Skovde_Traits_FAA\Skovde_EEG\';
-parentfolder = 'D:\FAA_Study_2021\Skovde\Skovde_Traits_FAA\Skovde_EEG\EEG_RAW\';
-newdir = [ skovdefolder 'EEG_Preprocessed\'];
+% PATH TO THE EEG and RAW FOLDERS
+eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
+rawfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_RAW\';
 
 % PATH TO EEGLAB TEMPLATE (BESA) CAP
 chanlocs = 'C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0\plugins\dipfit3.7\standard_BESA\standard-10-5-cap385.elp';
 
 %PATH TO LOCALIZER FILE (INCLUDES CHANNEL LOCATIONS)
-localizer = 'D:\FAA_Study_2021\Skovde\Skovde_Traits_FAA\Skovde_EEG\EEG_Localizer\';
-
-% ALLEEG? [ALLEEG EEG CURRENTSET] = eeg_store( ALLEEG, EEG, 0 );
+localizer = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Localizer\';
 
 % CREATE FOLDERS FOR THE PREPROCESSED DATA
-if ~exist('EEG_Resting-state', 'dir')
-    mkdir EEG_Preprocessed EEG_Resting-state;
+if ~exist('EEG_RS', 'dir')
+    mkdir EEG_RS RS_Preprocessed;
 end
-    rsdir = [ newdir 'EEG_Resting-state'];
+    rsdir = [ eegfolder 'EEG_RS\RS_Preprocessed'];
     
-if ~exist('EEG_State-dependent', 'dir')
-    mkdir EEG_Preprocessed EEG_State-dependent;
+if ~exist('EEG_SD', 'dir')
+    mkdir EEG_SD SD_Preprocessed;
 end
-    sddir = [ newdir 'EEG_State-dependent'];
+    sddir = [ eegfolder 'EEG_SD\SD_Preprocessed'];
+    
+% ALLEEG? [ALLEEG EEG CURRENTSET] = eeg_store( ALLEEG, EEG, 0 );
 
 %% PREPROCESSING OF RAW DATA
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 1 %:numsubjects
+for s = 1:numsubjects
     
     subject = subject_list{s};
     
     % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
-    subjectfolder = [ parentfolder subject '\'];
+    subjectfolder = [ rawfolder subject '\'];
 
     % IMPORT RAW DATA
     EEG = pop_importdata('dataformat','matlab','nbchan',35,'data',[subjectfolder subject '.mat'],'srate',512,'pnts',0,'xmin',0);
@@ -56,7 +55,7 @@ for s = 1 %:numsubjects
     % Event 4 is resting-state??
     EEG = pop_chanevent(EEG, 18, 'edge', 'leading', 'edgelen', 0 );
     
-    % REMOVE CHANNEL 1 (G.TEC TIME CHANNEL) AND 35 (EMPTY CHANNEL)
+    % REMOVE FIRST(G.TEC TIME) AND LAST (EMPTY) CHANNELS
     EEG = pop_select( EEG, 'nochannel', [1 34] );
     
     % IMPORT CHANNEL LOCATIONS
@@ -72,11 +71,11 @@ for s = 1 %:numsubjects
     EEG = pop_resample(EEG, 256);
     
     % HIGH PAS FILTER THE DATA AT 1 HZ. --Clen rawdata and ASR?--
-    EEG = pop_eegfiltnew(EEG, 'locutoff',1,'plotfreqz',1);
+    EEG = pop_eegfiltnew(EEG, 'locutoff',1);
     
     % LOW-PAS FILTER THE DATA AT 40 HZ
-    EEG = pop_eegfiltnew(EEG, 'hicutoff',40,'plotfreqz',1);
-    EEG.setname = subject
+    EEG = pop_eegfiltnew(EEG, 'hicutoff',40);
+    EEG.setname = subject;
 
     % SAVE IN CREATED FOLDER
     % EEG = pop_editset(EEG, 'setname', [subject '_Preprocess']);
@@ -84,7 +83,7 @@ for s = 1 %:numsubjects
     
     % TO DO: Extract RS data. Split into EO and EC. Overlapping epochs. ICA. EOG channels.
     % Reject data/channels. Interpolate bad electrodes. Clean rawdata.
-    % GOOD place to save and examine raw data.
+    % GOOD place to save and examine raw data. Should rename script?
     %% Test to extract resting-state and state-dependent data.
     
     % DEFINE WHERE TO SPLIT DATASETS (RESTING-STATE AND STATE-DEPENDENT
@@ -108,7 +107,7 @@ for s = 1 %:numsubjects
     % SELECT RS DATA AND SD DATA
     EEG_RSFAA = pop_select( EEG,'time',[startPoint_RS splitPoint_RS] );
     EEG_SDFAA = pop_select( EEG,'time',[splitPoint_SD endPoint_SD] );
-    EEG.setname = subject
+    EEG.setname = subject;
     
     % SAVE RS DATA IN RS FOLDER
     EEG_RSFAA = pop_saveset( EEG_RSFAA, 'filename',[subject '_RS.set'],'filepath', rsdir);
