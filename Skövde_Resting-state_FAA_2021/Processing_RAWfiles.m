@@ -35,12 +35,20 @@ if ~exist('EEG_SD', 'dir')
 end
     sddir = [ eegfolder 'EEG_SD\SD_Preprocessed'];
     
-% ALLEEG? [ALLEEG EEG CURRENTSET] = eeg_store( ALLEEG, EEG, 0 );
+if ~exist('RS_EO', 'dir')
+    mkdir EEG_RS RS_EO
+end
+eodir = [ eegfolder 'EEG_RS\RS_EO'];
+
+if ~exist('RS_EC', 'dir')
+    mkdir EEG_RS RS_EC
+end
+ecdir = [ eegfolder 'EEG_RS\RS_EC'];
 
 %% PREPROCESSING OF RAW DATA
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 1:numsubjects
+for s = 1 %:numsubjects
     
     subject = subject_list{s};
     
@@ -51,8 +59,6 @@ for s = 1:numsubjects
     EEG = pop_importdata('dataformat','matlab','nbchan',35,'data',[subjectfolder subject '.mat'],'srate',512,'pnts',0,'xmin',0);
     
     % IMPORT EVENT INFORMATION (CHANNEL 18)
-    % Where is the resting-state "trial" ? D? Talk to B. See Turku_Step1
-    % Event 4 is resting-state??
     EEG = pop_chanevent(EEG, 18, 'edge', 'leading', 'edgelen', 0 );
     
     % REMOVE FIRST(G.TEC TIME) AND LAST (EMPTY) CHANNELS
@@ -76,16 +82,10 @@ for s = 1:numsubjects
     % LOW-PAS FILTER THE DATA AT 40 HZ
     EEG = pop_eegfiltnew(EEG, 'hicutoff',40);
     EEG.setname = subject;
-
-    % SAVE IN CREATED FOLDER
-    % EEG = pop_editset(EEG, 'setname', [subject '_Preprocess']);
-    % EEG = pop_saveset( EEG, 'filename', [subject '_Preprocess.set'],'filepath', newdir);
     
     % TO DO: Extract RS data. Split into EO and EC. Overlapping epochs. ICA. EOG channels.
     % Reject data/channels. Interpolate bad electrodes. Clean rawdata.
-    % GOOD place to save and examine raw data. Should rename script?
-    %% Test to extract resting-state and state-dependent data.
-    
+    %% EXTRACT RESTING-STATE AND STATE-DEPENDENT DATA
     % DEFINE WHERE TO SPLIT DATASETS (RESTING-STATE AND STATE-DEPENDENT
     % TRIALS). RESTING-STATE PERIOD ENDS AFTER 16TH EVENT.
     % RS = RESTING-STATE
@@ -107,7 +107,8 @@ for s = 1:numsubjects
     % SELECT RS DATA AND SD DATA
     EEG_RSFAA = pop_select( EEG,'time',[startPoint_RS splitPoint_RS] );
     EEG_SDFAA = pop_select( EEG,'time',[splitPoint_SD endPoint_SD] );
-    EEG.setname = subject;
+    EEG_RSFAA.setname = [ subject '_RS'];
+    EEG_SDFAA.setname = [ subject '_SD'];
     
     % SAVE RS DATA IN RS FOLDER
     EEG_RSFAA = pop_saveset( EEG_RSFAA, 'filename',[subject '_RS.set'],'filepath', rsdir);
@@ -115,8 +116,52 @@ for s = 1:numsubjects
     % SAVE SD DATA IN SD FOLDER
     EEG_SDFAA = pop_saveset( EEG_SDFAA, 'filename',[subject '_SD.set'],'filepath', sddir);
     
+    % GOOD PLACE TO EXAMINE THE DATA
+    
+%% EPOCHING
+    
+%%%%% EYES OPEN %%%%%%
+    
+    % OPEN RS FILE FROM PREVIOUS STEP
+    EEG = pop_loadset( 'filename',[ subject '_RS.set'],'filepath', rsdir);
+     
+    % CREATE 1 MINUTE EPOCHS OF EYES OPEN (EO) CONDITION. EVENT CODE 30
+    EEG_EO = pop_epoch( EEG, {  '30'  }, [0         59.9], 'newname', [ subject '_EO'], 'epochinfo', 'yes');
+     
+    % CONCATENATE THE EO EPOCHS
+    EEG_EO = pop_epoch2continuous(EEG_EO, 'Warning', 'off');
+     
+    % CREATE CONTINOUS EO EPOCHS OG 2.048 DRVONFD, WITH 75% OVERLAP (0.512)
+    EEG_EO = eeg_regepochs(EEG_EO, 'recurrence', 0.512, 'limits', [-1.024 1.024], 'rmbase', NaN); 
+      
+    % REMOVE BASELINE (MEAN OF THE WHOLE EPOCH)
+    EEG_EO = pop_rmbase( EEG_EO, [],[]);
+    EEG_EO.setname = [ subject '_EO'];
+      
+    % SAVE EO DATA
+    EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO.set'],'filepath', eodir);
+    
+%%%%% EYES CLOSED %%%%%%
+    
+    % CREATE 1 MINUTE EPOCHS OF EYES CLOSED (EC) CONDITION. EVENT CODE 20
+    EEG_EC = pop_epoch( EEG, {  '20'  }, [0         59.9], 'newname', [ subject '_EO'], 'epochinfo', 'yes');
+    
+    % CONCATENATE THE EO EPOCHS
+    EEG_EC = pop_epoch2continuous(EEG_EC, 'Warning', 'off');
+    
+    % CREATE CONTINOUS EO EPOCHS OG 2.048 DRVONFD, WITH 75% OVERLAP (0.512)
+    EEG_EC = eeg_regepochs(EEG_EC, 'recurrence', 0.512, 'limits', [-1.024 1.024], 'rmbase', NaN); 
+     
+    % REMOVE BASELINE (MEAN OF THE WHOLE EPOCH)
+    EEG_EC = pop_rmbase( EEG_EC, [],[]);
+    EEG_EC.setname = [ subject '_EC'];
+    
+    % SAVE EC DATA
+    EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC.set'],'filepath', ecdir);
+     
+    %% EPOCH REMOVAL
     
     
 end
-    
+
 fprintf('\n\n\n**** FINISHED ****\n\n\n');  
