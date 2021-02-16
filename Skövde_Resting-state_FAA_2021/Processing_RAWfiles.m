@@ -26,14 +26,14 @@ localizer = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Localizer\';
 
 % CREATE FOLDERS FOR THE PREPROCESSED DATA
 if ~exist('EEG_RS', 'dir')
-    mkdir EEG_RS RS_Preprocessed;
+    mkdir EEG_RS RS;
 end
-    rsdir = [ eegfolder 'EEG_RS\RS_Preprocessed'];
+    rsdir = [ eegfolder 'EEG_RS\RS'];
     
 if ~exist('EEG_SD', 'dir')
-    mkdir EEG_SD SD_Preprocessed;
+    mkdir EEG_SD SD;
 end
-    sddir = [ eegfolder 'EEG_SD\SD_Preprocessed'];
+    sddir = [ eegfolder 'EEG_SD\SD'];
     
 if ~exist('RS_EO', 'dir')
     mkdir EEG_RS RS_EO
@@ -67,7 +67,7 @@ for s = 1 %:numsubjects
     % IMPORT CHANNEL LOCATIONS
     EEG = pop_chanedit(EEG, 'lookup', chanlocs,'load',{[ localizer 'Locations_32Channels.ced'] 'filetype' 'autodetect'});
     
-    % RE-REFERENCETO LM RM (FOR NOW)
+    % RE-REFERENCE TO LM RM (FOR NOW)
     EEG = pop_reref( EEG, [5 6] );
 
     % TRIM DATASET
@@ -76,15 +76,15 @@ for s = 1 %:numsubjects
     % RESAMPLE DATASET FROM 512 TO 256 HZ
     EEG = pop_resample(EEG, 256);
     
-    % HIGH PAS FILTER THE DATA AT 1 HZ. --Clen rawdata and ASR?--
+    % HIGH-PASS FILTER THE DATA AT 1 HZ. --Clean rawdata and ASR?--
     EEG = pop_eegfiltnew(EEG, 'locutoff',1);
     
-    % LOW-PAS FILTER THE DATA AT 40 HZ
+    % LOW-PASS FILTER THE DATA AT 40 HZ
     EEG = pop_eegfiltnew(EEG, 'hicutoff',40);
     EEG.setname = subject;
     
-    % TO DO: Extract RS data. Split into EO and EC. Overlapping epochs. ICA. EOG channels.
-    % Reject data/channels. Interpolate bad electrodes. Clean rawdata.
+    % TO DO: ICA. EOG channels. Reject data/channels. Interpolate bad electrodes. Clean rawdata.
+    
     %% EXTRACT RESTING-STATE AND STATE-DEPENDENT DATA
     % DEFINE WHERE TO SPLIT DATASETS (RESTING-STATE AND STATE-DEPENDENT
     % TRIALS). RESTING-STATE PERIOD ENDS AFTER 16TH EVENT.
@@ -161,6 +161,41 @@ for s = 1 %:numsubjects
      
     %% EPOCH REMOVAL
     
+    % MARK BAD EPOCHS (-500 TO 500 uV THRESHOLD), CHANNEL 1-4 ARE EOG,
+    % HENCE THEY ARE EXCLUDED HERE
+    EEG_EO = pop_eegthresh(EEG_EO,1, [5:length(EEG_EO.chanlocs)],-500,500,-1.024,1.024,0,0);
+    EEG_EC = pop_eegthresh(EEG_EC,1, [5:length(EEG_EC.chanlocs)],-500,500,-1.024,1.024,0,0);
+    
+    % REJECT BAD EPOCHS FOR EO AND EC DATA
+    EEG_EO = pop_rejepoch( EEG_EO, EEG_EO.reject.rejthresh,0);
+    EEG_EC = pop_rejepoch( EEG_EC, EEG_EC.reject.rejthresh,0);
+    EEG_EO.setname = [ subject '_EO_epochrej'];
+    EEG_EC.setname = [ subject '_EC_epochrej'];
+    
+    % SAVE DATA AFTER EPOCH REJECTION
+    EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_epochrej.set'],'filepath', eodir);
+    EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_epochrej.set'],'filepath', ecdir);
+    
+    %% RUN ICA
+    
+    EEG_EO = pop_runica(EEG_EO, 'extended',1,'interupt','on','pca', length(EEG_EO.chanlocs));
+    EEG_EC = pop_runica(EEG_EC, 'extended',1,'interupt','on','pca', length(EEG_EC.chanlocs));
+    EEG_EO.setname = [ subject '_EO_ICA']
+    EEG_EC.setname = [ subject '_EC_ICA']
+    
+    % SAVE DATA WITH ICA WEIGHTS
+    EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
+    EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
+    
+    % REMOVE ICs WITH MARA
+    pop_processMARA ( ALLEEG,EEG,CURRENTSET )
+    EEG = eeg_checkset( EEG );
+    
+    % SAVE DATA AFTER REMOVING COMPONENTS
+    EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_MARA.set'],'filepath', eodir);
+    EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_MARA.set'],'filepath', ecdir);
+    EEG_EO.setname = [ subject '_EO_MARA']
+    EEG_EC.setname = [ subject '_EC_MARA']
     
 end
 
