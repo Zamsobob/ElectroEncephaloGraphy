@@ -81,9 +81,10 @@ for s = 1 %:numsubjects
     
     % LOW-PASS FILTER THE DATA AT 40 HZ
     EEG = pop_eegfiltnew(EEG, 'hicutoff',40);
-    EEG.setname = subject;
     
-    % TO DO: EOG channels. Reject data/channels. Interpolate bad electrodes. Clean rawdata.
+    % CLEAN DATA
+    % EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion',5,'ChannelCriterion',0.8,'LineNoiseCriterion',4,'Highpass','off','BurstCriterion',20,'WindowCriterion',0.25,'BurstRejection','on','Distance','Euclidian','WindowCriterionTolerances',[-Inf 7] );
+    EEG.setname = subject;
     
     %% EXTRACT RESTING-STATE AND STATE-DEPENDENT DATA
     % DEFINE WHERE TO SPLIT DATASETS (RESTING-STATE AND STATE-DEPENDENT
@@ -184,10 +185,24 @@ for s = 1 %:numsubjects
     EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
     EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
     
-    % AUTOMATICALLY REMOVE COMPONENTS WITH MARA
-    pop_processMARA ( ALLEEG,EEG,CURRENTSET )
-    EEG = eeg_checkset( EEG );
+    %% MARA
     
+    % INITIALIZE ALLEEG BY OPENING EEGLAB
+    [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
+    
+    % ADD CURRENT EEG TO ALLEEG BY RELOADING SAVED ICA DATA
+    EEG_EO = pop_loadset( 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
+    EEG_EC = pop_loadset( 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
+    EEG_EO = eeg_checkset(EEG_EO);
+    EEG_EC = eeg_checkset(EEG_EC);
+    
+    % AUTOMATICALLY REMOVE COMPONENTS WITH MARA
+    EEG_EO = processMARA (ALLEEG, EEG_EO, CURRENTSET, [0,0,0,0,1]);
+    EEG_CO = processMARA (ALLEEG, EEG_EC, CURRENTSET, [0,0,0,0,1]);
+    
+    % automatically remove artifacts without gui
+    % EEG = pop_subcomp(EEG);
+
     % SAVE DATA AFTER REMOVING COMPONENTS
     EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_MARA.set'],'filepath', eodir);
     EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_MARA.set'],'filepath', ecdir);
@@ -195,7 +210,7 @@ for s = 1 %:numsubjects
     EEG_EC.setname = [ subject '_EC_MARA']
     
     % ----------------------------
-    % Interpolate channels by using original channel locations 
+    % Interpolate channels with original channel locations (before ICA?)
     % EEG_EO = pop_interp(EEG, EEG.originalEEG.chanlocs, 'spherical');
     % EEG_EC = pop_interp(EEG, EEG.originalEEG.chanlocs, 'spherical');
     
@@ -203,7 +218,10 @@ for s = 1 %:numsubjects
     % CLEAN RAWDATA? (AFTER/INSTEAD OF HIGH-PASS FILTER AND BEFORE ICA)
     % EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion',5,'ChannelCriterion',0.8,'LineNoiseCriterion',4,'Highpass','off','BurstCriterion',20,'WindowCriterion',0.25,'BurstRejection','on','Distance','Euclidian','WindowCriterionTolerances',[-Inf 7] );
 
-    
+    % TO DO: EOG channels. Reject data/channels. Interpolate bad
+    % electrodes. Clean rawdata. Reject epochs (manually?). Before ICA. 
+    % Separate into RS and SD before anything else perhaps? Maybe that is
+    % where one event is disappearing? EEG = eeg_interp? Fix MARA.
     
 end
 
