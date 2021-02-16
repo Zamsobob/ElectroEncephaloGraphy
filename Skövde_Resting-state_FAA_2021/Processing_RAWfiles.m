@@ -10,7 +10,7 @@ cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
 % DEFINE THE SET OF SUBJECTS
 % subject 24 missing. Cancelled participation?
-% REMOVING SUB-002 REMPORARILY. WHICH SHOULD I USE LATER AS I HAVE 2 FILES?
+% REMOVING SUB-002 TEMPORARILY. WHICH SHOULD I USE LATER AS I HAVE 2 FILES?
 subject_list = {'sub-001', 'sub-003', 'sub-004', 'sub-005', 'sub-006', 'sub-007', 'sub-008', 'sub-009', 'sub-010', 'sub-011', 'sub-012', 'sub-013', 'sub-014', 'sub-015', 'sub-016', 'sub-017', 'sub-018', 'sub-019', 'sub-020', 'sub-021', 'sub-022', 'sub-023', 'sub-025', 'sub-026', 'sub-027', 'sub-028', 'sub-029', 'sub-030', 'sub-031', 'sub-032'};
 numsubjects = length(subject_list);
 
@@ -83,14 +83,13 @@ for s = 1 %:numsubjects
     EEG = pop_eegfiltnew(EEG, 'hicutoff',40);
     EEG.setname = subject;
     
-    % TO DO: ICA. EOG channels. Reject data/channels. Interpolate bad electrodes. Clean rawdata.
+    % TO DO: EOG channels. Reject data/channels. Interpolate bad electrodes. Clean rawdata.
     
     %% EXTRACT RESTING-STATE AND STATE-DEPENDENT DATA
     % DEFINE WHERE TO SPLIT DATASETS (RESTING-STATE AND STATE-DEPENDENT
     % TRIALS). RESTING-STATE PERIOD ENDS AFTER 16TH EVENT.
     % RS = RESTING-STATE
     % SD = STATE-DEPENDENT
-    % Sub-002 is messed up. It only has 2 events, due to being two parts.
     
     startPoint_RS = EEG.event(1).latency;
     startPoint_RS = startPoint_RS/EEG.srate;
@@ -110,10 +109,8 @@ for s = 1 %:numsubjects
     EEG_RSFAA.setname = [ subject '_RS'];
     EEG_SDFAA.setname = [ subject '_SD'];
     
-    % SAVE RS DATA IN RS FOLDER
+    % SAVE RS AND SD DATA IN RS AND SD FOLDERS
     EEG_RSFAA = pop_saveset( EEG_RSFAA, 'filename',[subject '_RS.set'],'filepath', rsdir);
-    
-    % SAVE SD DATA IN SD FOLDER
     EEG_SDFAA = pop_saveset( EEG_SDFAA, 'filename',[subject '_SD.set'],'filepath', sddir);
     
     % GOOD PLACE TO EXAMINE THE DATA
@@ -131,14 +128,14 @@ for s = 1 %:numsubjects
     % CONCATENATE THE EO EPOCHS
     EEG_EO = pop_epoch2continuous(EEG_EO, 'Warning', 'off');
      
-    % CREATE CONTINOUS EO EPOCHS OG 2.048 DRVONFD, WITH 75% OVERLAP (0.512)
+    % CREATE CONTINOUS EO EPOCHS OF 2.048 SECONDS, WITH 75% OVERLAP (0.512)
     EEG_EO = eeg_regepochs(EEG_EO, 'recurrence', 0.512, 'limits', [-1.024 1.024], 'rmbase', NaN); 
       
     % REMOVE BASELINE (MEAN OF THE WHOLE EPOCH)
     EEG_EO = pop_rmbase( EEG_EO, [],[]);
     EEG_EO.setname = [ subject '_EO'];
       
-    % SAVE EO DATA
+    % SAVE EO DATA IN EO FOLDER
     EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO.set'],'filepath', eodir);
     
 %%%%% EYES CLOSED %%%%%%
@@ -156,7 +153,7 @@ for s = 1 %:numsubjects
     EEG_EC = pop_rmbase( EEG_EC, [],[]);
     EEG_EC.setname = [ subject '_EC'];
     
-    % SAVE EC DATA
+    % SAVE EC DATA IN EC FOLDER
     EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC.set'],'filepath', ecdir);
      
     %% EPOCH REMOVAL
@@ -176,7 +173,7 @@ for s = 1 %:numsubjects
     EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_epochrej.set'],'filepath', eodir);
     EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_epochrej.set'],'filepath', ecdir);
     
-    %% RUN ICA
+    %% RUN ICA ON EEG CHANNELS
     
     EEG_EO = pop_runica(EEG_EO, 'extended',1,'interupt','on','pca', length(EEG_EO.chanlocs));
     EEG_EC = pop_runica(EEG_EC, 'extended',1,'interupt','on','pca', length(EEG_EC.chanlocs));
@@ -187,7 +184,7 @@ for s = 1 %:numsubjects
     EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
     EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
     
-    % REMOVE ICs WITH MARA
+    % AUTOMATICALLY REMOVE COMPONENTS WITH MARA
     pop_processMARA ( ALLEEG,EEG,CURRENTSET )
     EEG = eeg_checkset( EEG );
     
@@ -196,6 +193,17 @@ for s = 1 %:numsubjects
     EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_MARA.set'],'filepath', ecdir);
     EEG_EO.setname = [ subject '_EO_MARA']
     EEG_EC.setname = [ subject '_EC_MARA']
+    
+    % ----------------------------
+    % Interpolate channels by using original channel locations 
+    % EEG_EO = pop_interp(EEG, EEG.originalEEG.chanlocs, 'spherical');
+    % EEG_EC = pop_interp(EEG, EEG.originalEEG.chanlocs, 'spherical');
+    
+    
+    % CLEAN RAWDATA? (AFTER/INSTEAD OF HIGH-PASS FILTER AND BEFORE ICA)
+    % EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion',5,'ChannelCriterion',0.8,'LineNoiseCriterion',4,'Highpass','off','BurstCriterion',20,'WindowCriterion',0.25,'BurstRejection','on','Distance','Euclidian','WindowCriterionTolerances',[-Inf 7] );
+
+    
     
 end
 
