@@ -48,7 +48,7 @@ ecdir = [ eegfolder 'EEG_RS\RS_EC'];
 %% PREPROCESSING OF RAW DATA
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 1:numsubjects
+for s = 1 %:numsubjects
     
     subject = subject_list{s};
     
@@ -190,17 +190,42 @@ for s = 1:numsubjects
     
     %% RUN ICA ON EEG CHANNELS
     
-%     EEG_EO = pop_runica(EEG_EO, 'extended',1,'interupt','on','pca', length(EEG_EO.chanlocs));
-%     EEG_EC = pop_runica(EEG_EC, 'extended',1,'interupt','on','pca', length(EEG_EC.chanlocs));
-%     EEG_EO.setname = [ subject '_EO_ICA']
-%     EEG_EC.setname = [ subject '_EC_ICA']
-%     
-%     % SAVE DATA WITH ICA WEIGHTS
-%     EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
-%     EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
+     EEG_EO = pop_runica(EEG_EO, 'extended',1,'interupt','on','pca', length(EEG_EO.chanlocs));
+     EEG_EC = pop_runica(EEG_EC, 'extended',1,'interupt','on','pca', length(EEG_EC.chanlocs));
+     EEG_EO.setname = [ subject '_EO_ICA']
+     EEG_EC.setname = [ subject '_EC_ICA']
+     
+     % SAVE DATA WITH ICA WEIGHTS
+     EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
+     EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
+
+    % RUN ICLABEL TO LABEL COMPONENTS
+    EEG_EO = pop_iclabel(EEG_EO, 'default');
+    EEG_EC = pop_iclabel(EEG_EC, 'default');
+    
+    % MARK COMPONENTS WITH >= 90% PROBABILITY OF BEING NON-BRAIN COMPONENTS
+    EEG_EO = pop_icflag(EEG_EO, [NaN NaN;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1]);
+    EEG_EC = pop_icflag(EEG_EC, [NaN NaN;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1]);
+    EEG_EO.setname = [ subject '_EO_ICAmarked'];
+    EEG_EC.setname = [ subject '_EC_ICAmarked'];
+    
+    % SAVE DATA WITH COMPONENTS MARKED FOR REMOVAL
+     EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
+     EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
+    
+    % REMOVE SELECTED COMPONENTS
+    EEG_EO = pop_subcomp(EEG_EO, [find(EEG_EO.reject.gcompreject == 1)], 0);
+    EEG_EC = pop_subcomp(EEG_EC, [find(EEG_EC.reject.gcompreject == 1)], 0);
+    EEG_EO.setname = [ subject '_EO_ICA_Removed'];
+    EEG_EC.setname = [ subject '_EC_ICA_Removed'];
+    
+    % SAVE DATA WITH COMPONENTS REMOVED
+    EEG_EO = pop_saveset(EEG_EO, 'filename',[ subject '_EO_ICA_Removed.set'],'filepath', eodir);
+    EEG_EC = pop_saveset(EEG_EC, 'filename',[ subject '_EC_ICA_Removed.set'],'filepath', ecdir);
+    
 
     %% Interpolate, EOGs, IClabel. Small number of time points?
-    
+   
     % ----------------------------
     % Interpolate channels with original channel locations
     % EEG_EO = pop_interp(EEG, EEG.originalEEG.chanlocs, 'spherical');
