@@ -48,7 +48,7 @@ ecdir = [ eegfolder 'EEG_RS\RS_EC'];
 %% PREPROCESSING OF RAW DATA
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 1 %:numsubjects
+for s = 1:numsubjects
     
     subject = subject_list{s};
     
@@ -62,19 +62,19 @@ for s = 1 %:numsubjects
     EEG = pop_chanevent(EEG, 18, 'edge', 'leading', 'edgelen', 0 );
     
     % REMOVE FIRST(G.TEC TIME) AND LAST (EMPTY) CHANNELS
-    EEG = pop_select( EEG, 'nochannel', [1 34] );
+    EEG = pop_select(EEG, 'nochannel', [1 34] );
     
     % IMPORT CHANNEL LOCATIONS AND OPTIMIZE HEAD CENTER
     EEG = pop_chanedit(EEG, 'lookup', chanlocation,'load',{[ localizer 'Locations_32Channels.ced'] 'filetype' 'autodetect'},'eval','chans = pop_chancenter( chans, [],[]);');
     
     % RE-REFERENCE TO LM RM (FOR NOW)
-    EEG = pop_reref( EEG, [5 6] );
+    EEG = pop_reref(EEG, [5 6] );
     
     % RESAMPLE DATASET FROM 512 TO 256 HZ
     EEG = pop_resample(EEG, 256);
     
     % NOTCH FILTER 50 HZ TO REMOVE LINE NOISE. (CLEANLINE NOT WORKING)
-    EEG  = pop_basicfilter( EEG,  1:EEG.nbchan, ... 
+    EEG  = pop_basicfilter(EEG,  1:EEG.nbchan, ... 
         'Filter', 'PMnotch', ...
         'Design', 'notch', ...
         'Cutoff', 50, ...
@@ -100,14 +100,14 @@ for s = 1 %:numsubjects
     endPoint_SD = EEG.event(endPoint).latency;
 
     % SELECT RS DATA AND SD DATA
-    EEG_RSFAA = pop_select( EEG,'time',[startPoint_RS splitPoint_RS] );
-    EEG_SDFAA = pop_select( EEG,'time',[splitPoint_SD endPoint_SD] );
+    EEG_RSFAA = pop_select(EEG,'time',[startPoint_RS splitPoint_RS] );
+    EEG_SDFAA = pop_select(EEG,'time',[splitPoint_SD endPoint_SD] );
     EEG_RSFAA.setname = [ subject '_RS'];
     EEG_SDFAA.setname = [ subject '_SD'];
     
     % SAVE RS AND SD DATA IN RS AND SD FOLDERS
-    EEG_RSFAA = pop_saveset( EEG_RSFAA, 'filename',[subject '_RS.set'],'filepath', rsdir);
-    EEG_SDFAA = pop_saveset( EEG_SDFAA, 'filename',[subject '_SD.set'],'filepath', sddir);
+    EEG_RSFAA = pop_saveset(EEG_RSFAA, 'filename',[subject '_RS.set'],'filepath', rsdir);
+    EEG_SDFAA = pop_saveset(EEG_SDFAA, 'filename',[subject '_SD.set'],'filepath', sddir);
     
     %% PREPROCESSING RESTING-STATE DATA
     
@@ -119,7 +119,7 @@ for s = 1 %:numsubjects
     EEG.setname = [ subject '_RS_Filt'];
     
     % SAVE FILTERED RS DATA FOR VISUAL EXAMINATION
-    EEG = pop_saveset( EEG, 'filename',[subject '_RS_Filt.set'],'filepath', rsdir);
+    EEG = pop_saveset(EEG, 'filename',[subject '_RS_Filt.set'],'filepath', rsdir);
     
     % SAVE ORIGINAL CHANNELS BEFORE REMOVING BAD ONES
     originalchanlocs = EEG.chanlocs;
@@ -135,7 +135,7 @@ for s = 1 %:numsubjects
     % EEG = pop_loadset( 'filename',[ subject '_RS.set'],'filepath', rsdir);
      
     % CREATE 1 MINUTE EPOCHS OF EYES OPEN (EO) CONDITION. EVENT CODE 30
-    EEG_EO = pop_epoch( EEG, {  '30'  }, [0         59.9], 'newname', [ subject '_EO'], 'epochinfo', 'yes');
+    EEG_EO = pop_epoch(EEG, {  '30'  }, [0         59.9], 'newname', [ subject '_EO'], 'epochinfo', 'yes');
      
     % CONCATENATE THE EO EPOCHS
     EEG_EO = pop_epoch2continuous(EEG_EO, 'Warning', 'off');
@@ -144,16 +144,16 @@ for s = 1 %:numsubjects
     EEG_EO = eeg_regepochs(EEG_EO, 'recurrence', 0.512, 'limits', [-1.024 1.024], 'rmbase', NaN); 
       
     % REMOVE BASELINE (MEAN OF THE WHOLE EPOCH)
-    EEG_EO = pop_rmbase( EEG_EO, [],[]);
+    EEG_EO = pop_rmbase(EEG_EO, [],[]);
     EEG_EO.setname = [ subject '_EO'];
       
     % SAVE EO DATA IN EO FOLDER
-    EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO.set'],'filepath', eodir);
+    EEG_EO = pop_saveset(EEG_EO, 'filename',[ subject '_EO.set'],'filepath', eodir);
     
 %%%%% EYES CLOSED %%%%%%
     
     % CREATE 1 MINUTE EPOCHS OF EYES CLOSED (EC) CONDITION. EVENT CODE 20
-    EEG_EC = pop_epoch( EEG, {  '20'  }, [0         59.9], 'newname', [ subject '_EO'], 'epochinfo', 'yes');
+    EEG_EC = pop_epoch(EEG, {  '20'  }, [0         59.9], 'newname', [ subject '_EO'], 'epochinfo', 'yes');
     
     % CONCATENATE THE EO EPOCHS
     EEG_EC = pop_epoch2continuous(EEG_EC, 'Warning', 'off');
@@ -162,11 +162,11 @@ for s = 1 %:numsubjects
     EEG_EC = eeg_regepochs(EEG_EC, 'recurrence', 0.512, 'limits', [-1.024 1.024], 'rmbase', NaN); 
      
     % REMOVE BASELINE (MEAN OF THE WHOLE EPOCH)
-    EEG_EC = pop_rmbase( EEG_EC, [],[]);
+    EEG_EC = pop_rmbase(EEG_EC, [],[]);
     EEG_EC.setname = [ subject '_EC'];
     
     % SAVE EC DATA IN EC FOLDER
-    EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC.set'],'filepath', ecdir);
+    EEG_EC = pop_saveset(EEG_EC, 'filename',[ subject '_EC.set'],'filepath', ecdir);
      
     %% EPOCH REMOVAL
     
@@ -176,14 +176,14 @@ for s = 1 %:numsubjects
     EEG_EC = pop_eegthresh(EEG_EC,1, [5:length(EEG_EC.chanlocs)],-500,500,-1.024,1.024,0,0);
     
     % REJECT BAD EPOCHS FOR EO AND EC DATA
-    EEG_EO = pop_rejepoch( EEG_EO, EEG_EO.reject.rejthresh,0);
-    EEG_EC = pop_rejepoch( EEG_EC, EEG_EC.reject.rejthresh,0);
+    EEG_EO = pop_rejepoch(EEG_EO, EEG_EO.reject.rejthresh,0);
+    EEG_EC = pop_rejepoch(EEG_EC, EEG_EC.reject.rejthresh,0);
     EEG_EO.setname = [ subject '_EO_epochrej'];
     EEG_EC.setname = [ subject '_EC_epochrej'];
     
     % SAVE DATA AFTER EPOCH REJECTION
-    EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_epochrej.set'],'filepath', eodir);
-    EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_epochrej.set'],'filepath', ecdir);
+    EEG_EO = pop_saveset(EEG_EO, 'filename',[ subject '_EO_epochrej.set'],'filepath', eodir);
+    EEG_EC = pop_saveset(EEG_EC, 'filename',[ subject '_EC_epochrej.set'],'filepath', ecdir);
     
     %% RUN ICA ON EEG CHANNELS
     
@@ -193,8 +193,8 @@ for s = 1 %:numsubjects
     EEG_EC.setname = [ subject '_EC_ICA']
      
     % SAVE DATA WITH ICA WEIGHTS
-    EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
-    EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
+    EEG_EO = pop_saveset(EEG_EO, 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
+    EEG_EC = pop_saveset(EEG_EC, 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
 
     % RUN ICLABEL(Pion-Tonachini et al., 2019) TO LABEL COMPONENTS
     EEG_EO = pop_iclabel(EEG_EO, 'default');
@@ -207,8 +207,8 @@ for s = 1 %:numsubjects
     EEG_EC.setname = [ subject '_EC_ICA_marked'];
     
     % SAVE DATA WITH COMPONENTS MARKED FOR REMOVAL
-    EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA_Marked.set'],'filepath', eodir);
-    EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA_Marked.set'],'filepath', ecdir);
+    EEG_EO = pop_saveset(EEG_EO, 'filename',[ subject '_EO_ICA_Marked.set'],'filepath', eodir);
+    EEG_EC = pop_saveset(EEG_EC, 'filename',[ subject '_EC_ICA_Marked.set'],'filepath', ecdir);
     
     % REMOVE SELECTED COMPONENTS
     EEG_EO = pop_subcomp(EEG_EO, [find(EEG_EO.reject.gcompreject == 1)], 0);
@@ -244,12 +244,22 @@ for s = 1 %:numsubjects
     
     % LOW-PASS FILTER AT 40 HZ INSTEAD OF NOTCH? OR BOTH?
     
-    % REFECT EPOCHS AGAIN AFTER -500 +500 UV. WITH SD? SEE MAKOTO
+    % REJECT EPOCHS AGAIN AFTER -500 +500 UV. WITH SD? SEE MAKOTO
     
     % USE CLEANLINE OR CLEANLINENOISE. DOES NOT WORK WELL ATM.
     % EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion','off','ChannelCriterion','off','LineNoiseCriterion','off','Highpass',[0.25 1.25] ,'BurstCriterion','off','WindowCriterion','off','BurstRejection','off','Distance','Euclidian');
     
     % AVERAGE REFERENCE OR LORETA? SINGLE EQUIVALENT CURRENT DIPOLES?
+    
+    % WHAT ABOUT ALL THE BOUNDARY EVENTS CREATED BY E.G., CLEAN_RAW?
+    
+    % CREATE STUDY IN EEGLAB?
+    
+    % CONSIDER PREP PIPELINE (2015) AND ROBUST PIPELINE (2019)
+    
+    % CREATE SUBJECT FOLDERS FOR PREPROCESSED DATA?
+    
+    % CODE FOR SPLITTING INTO RS/SD UP TO DATE?
 end
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');  
