@@ -126,6 +126,7 @@ for s = 1 %:numsubjects
      
     % CONCATENATE THE EO EPOCHS
     EEG_EO = pop_epoch2continuous(EEG_EO, 'Warning', 'off');
+    EEG_EO.setname = [ subject '_EO']; % NAME FOR DATASET MENU
     
     % SAVE RAW EO DATA
     EEG_EO = pop_saveset(EEG_EO, 'filename',[subject '_EO'], ...
@@ -183,6 +184,7 @@ for s = 1 %:numsubjects
     
     % CONCATENATE THE EO EPOCHS
     EEG_EC = pop_epoch2continuous(EEG_EC, 'Warning', 'off');
+    EEG_EO.setname = [ subject '_EC']; % NAME FOR DATASET MENU
     
     % SAVE RAW EC DATA
     EEG_EC = pop_saveset(EEG_EC, 'filename',[subject '_EC'], ...
@@ -348,8 +350,7 @@ for s = 1 %:numsubjects
     % REJECT EPOCHS AGAIN AFTER -500 +500 UV. WITH SD? SEE MAKOTO
     
     % USE CLEANLINE OR CLEANLINENOISE. DOES NOT WORK WELL ATM.
-    % EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion','off','ChannelCriterion','off','LineNoiseCriterion','off','Highpass',[0.25 1.25] ,'BurstCriterion','off','WindowCriterion','off','BurstRejection','off','Distance','Euclidian');
-    
+   
     % AVERAGE REFERENCE OR LORETA? SINGLE EQUIVALENT CURRENT DIPOLES?
     
     % WHAT ABOUT ALL THE BOUNDARY EVENTS CREATED BY E.G., CLEAN_RAW?
