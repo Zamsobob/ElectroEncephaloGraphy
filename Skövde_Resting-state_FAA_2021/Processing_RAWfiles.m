@@ -69,14 +69,11 @@ for s = 1 %:numsubjects
     
     % RE-REFERENCE TO LM RM (FOR NOW)
     EEG = pop_reref( EEG, [5 6] );
-
-    % TRIM DATASET
-    % EEG  = pop_eegtrim( EEG, 0, 3000 , 'post',  3000, 'pre',  0 );
     
     % RESAMPLE DATASET FROM 512 TO 256 HZ
     EEG = pop_resample(EEG, 256);
     
-    % NOTCH FILTER 50 HZ TO REMOVE LINE NOISE
+    % NOTCH FILTER 50 HZ TO REMOVE LINE NOISE. (CLEANLINE NOT WORKING)
     EEG  = pop_basicfilter( EEG,  1:EEG.nbchan, ... 
         'Filter', 'PMnotch', ...
         'Design', 'notch', ...
@@ -124,7 +121,7 @@ for s = 1 %:numsubjects
     % SAVE FILTERED RS DATA FOR VISUAL EXAMINATION
     EEG = pop_saveset( EEG, 'filename',[subject '_RS_Filt.set'],'filepath', rsdir);
     
-    % SAVE CHANNELS BEFORE REMOVING BAD ONES
+    % SAVE ORIGINAL CHANNELS BEFORE REMOVING BAD ONES
     originalchanlocs = EEG.chanlocs;
     
     % USE CLEAN_RAW TO REMOVE BAD CHANNELS
@@ -190,28 +187,28 @@ for s = 1 %:numsubjects
     
     %% RUN ICA ON EEG CHANNELS
     
-     EEG_EO = pop_runica(EEG_EO, 'extended',1,'interupt','on','pca', length(EEG_EO.chanlocs));
-     EEG_EC = pop_runica(EEG_EC, 'extended',1,'interupt','on','pca', length(EEG_EC.chanlocs));
-     EEG_EO.setname = [ subject '_EO_ICA']
-     EEG_EC.setname = [ subject '_EC_ICA']
+    EEG_EO = pop_runica(EEG_EO, 'extended',1,'interupt','on','pca', length(EEG_EO.chanlocs));
+    EEG_EC = pop_runica(EEG_EC, 'extended',1,'interupt','on','pca', length(EEG_EC.chanlocs));
+    EEG_EO.setname = [ subject '_EO_ICA']
+    EEG_EC.setname = [ subject '_EC_ICA']
      
-     % SAVE DATA WITH ICA WEIGHTS
-     EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
-     EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
+    % SAVE DATA WITH ICA WEIGHTS
+    EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
+    EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
 
-    % RUN ICLABEL TO LABEL COMPONENTS
+    % RUN ICLABEL(Pion-Tonachini et al., 2019) TO LABEL COMPONENTS
     EEG_EO = pop_iclabel(EEG_EO, 'default');
     EEG_EC = pop_iclabel(EEG_EC, 'default');
     
     % MARK COMPONENTS WITH >= 90% PROBABILITY OF BEING NON-BRAIN COMPONENTS
     EEG_EO = pop_icflag(EEG_EO, [NaN NaN;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1]);
     EEG_EC = pop_icflag(EEG_EC, [NaN NaN;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1]);
-    EEG_EO.setname = [ subject '_EO_ICAmarked'];
-    EEG_EC.setname = [ subject '_EC_ICAmarked'];
+    EEG_EO.setname = [ subject '_EO_ICA_marked'];
+    EEG_EC.setname = [ subject '_EC_ICA_marked'];
     
     % SAVE DATA WITH COMPONENTS MARKED FOR REMOVAL
-     EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA.set'],'filepath', eodir);
-     EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA.set'],'filepath', ecdir);
+    EEG_EO = pop_saveset( EEG_EO, 'filename',[ subject '_EO_ICA_Marked.set'],'filepath', eodir);
+    EEG_EC = pop_saveset( EEG_EC, 'filename',[ subject '_EC_ICA_Marked.set'],'filepath', ecdir);
     
     % REMOVE SELECTED COMPONENTS
     EEG_EO = pop_subcomp(EEG_EO, [find(EEG_EO.reject.gcompreject == 1)], 0);
@@ -223,28 +220,36 @@ for s = 1 %:numsubjects
     EEG_EO = pop_saveset(EEG_EO, 'filename',[ subject '_EO_ICA_Removed.set'],'filepath', eodir);
     EEG_EC = pop_saveset(EEG_EC, 'filename',[ subject '_EC_ICA_Removed.set'],'filepath', ecdir);
     
+    %% POST ICA
+    
+    % INTERPOLATE CHANNELS USING ORIGINAL CHANNELS
+    EEG_EO = pop_interp(EEG_EO, originalchanlocs, 'spherical');
+    EEG_EC = pop_interp(EEG_EC, originalchanlocs, 'spherical');
+    
+    % REMOVE EOG CHANNELS 1:4
+    EEG_EO = pop_select(EEG_EO,'nochannel', 1:4);
+    EEG_EC = pop_select(EEG_EC,'nochannel', 1:4);
+    
+    % SAVE PREPROCESSED DATA
+    EEG_EO = pop_saveset(EEG_EO, 'filename',[ subject '_EO_Preprocessed.set'],'filepath', eodir);
+    EEG_EC = pop_saveset(EEG_EC, 'filename',[ subject '_EC_Preprocessed.set'],'filepath', ecdir);
+    
 
-    %% Interpolate, EOGs, IClabel. Small number of time points?
-   
-    % ----------------------------
-    % Interpolate channels with original channel locations
-    % EEG_EO = pop_interp(EEG, EEG.originalEEG.chanlocs, 'spherical');
-    % EEG_EC = pop_interp(EEG, EEG.originalEEG.chanlocs, 'spherical');
+    %% OTHER THINGS TO CONSIDER
     
-    % TO DO: EOG channels. Reject data/channels. Interpolate bad
-    % electrodes. Clean rawdata. Reject epochs (manually?). Before ICA. 
-    % Separate into RS and SD before anything else perhaps? Maybe that is
-    % where one event is disappearing? EEG = eeg_interp? Fix MARA.
+    % TRIM DATASET (BETWEEN REREFERENCE AND RESAMPLE?)
+    % EEG  = pop_eegtrim( EEG, 0, 3000 , 'post',  3000, 'pre',  0 );
     
-    % REMOVE EYE-CHANNELS (AFTER ICA)
-    % EEG = pop_select( EEG,'nochannel',{'EOG1' 'EOG2' 'EOG3' 'EOG4'});
+    % CHANGE ORDER OF CERTAIN FUNCTIONS?
     
-    % USE CLEANLINENOISE FROM THE PREP PIPELINE
-    %     EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion','off','ChannelCriterion','off','LineNoiseCriterion','off','Highpass',[0.25 1.25] ,'BurstCriterion','off','WindowCriterion','off','BurstRejection','off','Distance','Euclidian');
-
-    % Run ICLabel (Pion-Tonachini et al., 2019)
-    % EEG = iclabel(EEG, 'default');
+    % LOW-PASS FILTER AT 40 HZ INSTEAD OF NOTCH? OR BOTH?
     
+    % REFECT EPOCHS AGAIN AFTER -500 +500 UV. WITH SD? SEE MAKOTO
+    
+    % USE CLEANLINE OR CLEANLINENOISE. DOES NOT WORK WELL ATM.
+    % EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion','off','ChannelCriterion','off','LineNoiseCriterion','off','Highpass',[0.25 1.25] ,'BurstCriterion','off','WindowCriterion','off','BurstRejection','off','Distance','Euclidian');
+    
+    % AVERAGE REFERENCE OR LORETA? SINGLE EQUIVALENT CURRENT DIPOLES?
 end
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');  
