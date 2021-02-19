@@ -51,7 +51,7 @@ ecdir = [ eegfolder 'EEG_RS\RS_EC'];
 %% PREPROCESSING OF RAW DATA
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 16 %:numsubjects
+for s = 16 %:numsubjects      [1:15 17:numsubjects]
     
     subject = subject_list{s};
     
@@ -335,7 +335,7 @@ for s = 16 %:numsubjects
      EEG_EO.setname = [ subject '_EO_Preprocessed']; % NAME FOR DATASET MENU
      EEG_EC.setname = [ subject '_EC_Preprocessed']; % NAME FOR DATASET MENU
      
-%       FOR SUB-017 ERROR REMOVE EOG CHANNELS
+%       ERROR SUB-017 REMOVE EOG CHANNELS
 %       Error using pop_select (line 292)
 %       Wrong channel range
 %
@@ -386,6 +386,8 @@ for s = 16 %:numsubjects
     % IS CHANNEL LOCATIONS WORKING CORRECTLY?
     
     % RUN HIGH-PASS WITH CLEAN_RAW, THEN NOTCH, THEN RUN THE REST OF CLEAN?
+    
+    % WHAT HAPPENS TO LM RM REFERENCE AFTER INTERPOLATING?
 end
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
