@@ -62,7 +62,7 @@ final = [ eegfolder 'EEG_Preprocessed'];
 %% LOADING RAW FAA DATA AND RELEVANT FILES
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 1 %:numsubjects   % [1:15 17:numsubjects]
+for s = 15 %:numsubjects   % [1:14 16:numsubjects] s=15 for sub-017
     
     subject = subject_list{s};
     
@@ -359,10 +359,20 @@ for s = 1 %:numsubjects   % [1:15 17:numsubjects]
      % INTERPOLATE CHANNELS USING ORIGINAL CHANNELS
      EEG_EO = pop_interp(EEG_EO, originalchanlocs, 'spherical');
      EEG_EC = pop_interp(EEG_EC, originalchanlocs, 'spherical');
+     EEG_EO.setname = [subject '_EO_Interp']; % NAME FOR DATASET MENU
+     EEG_EC.setname = [subject '_EC_Interp']; % NAME FOR DATASET MENU
+     
+     % TEMPORARY FOR SUB-017 SAVE DATA
+     EEG_EO = pop_saveset(EEG_EO, ...
+         'filename',[subject '_EO_Interp.set'], ...
+         'filepath', eodir);
+     EEG_EC = pop_saveset(EEG_EC, ...
+         'filename',[subject '_EC_Interp.set'], ...
+         'filepath', ecdir);
      
      % REMOVE EOG CHANNELS 1:4
      EEG_EO = pop_select(EEG_EO, ...
-         'nochannel', {'EOG1' 'EOG2' 'EOG3 ''EOG4'});
+         'nochannel', {'EOG1' 'EOG2' 'EOG3' 'EOG4'});
      EEG_EC = pop_select(EEG_EC, ...
          'nochannel', {'EOG1' 'EOG2' 'EOG3' 'EOG4'});
      EEG_EO.setname = [subject '_EO_Preprocessed']; % NAME FOR DATASET MENU
