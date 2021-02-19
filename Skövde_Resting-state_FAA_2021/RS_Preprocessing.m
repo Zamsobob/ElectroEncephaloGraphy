@@ -51,7 +51,7 @@ ecdir = [ eegfolder 'EEG_RS\RS_EC'];
 %% PREPROCESSING OF RAW DATA
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 5 %:numsubjects
+for s = 16 %:numsubjects
     
     subject = subject_list{s};
     
@@ -116,7 +116,7 @@ for s = 5 %:numsubjects
     
 %% EXTRACT AND CLEAN EYES OPEN DATA
      
-% OPEN RS FILE FROM PREVIOUS STEP
+    % OPEN RS FILE FROM PREVIOUS STEP
     EEG = pop_loadset( 'filename',[ subject '_RS.set'],'filepath', rsdir);
     
     % CREATE 1 MINUTE EPOCHS OF EYES OPEN (EO) CONDITION. EVENT CODE 30
@@ -184,7 +184,7 @@ for s = 5 %:numsubjects
     
     % CONCATENATE THE EO EPOCHS
     EEG_EC = pop_epoch2continuous(EEG_EC, 'Warning', 'off');
-    EEG_EO.setname = [ subject '_EC']; % NAME FOR DATASET MENU
+    EEG_EC.setname = [ subject '_EC']; % NAME FOR DATASET MENU
     
     % SAVE RAW EC DATA
     EEG_EC = pop_saveset(EEG_EC, 'filename',[subject '_EC'], ...
@@ -235,109 +235,129 @@ for s = 5 %:numsubjects
      
     %% EPOCH REMOVAL BEFORE ICA
     
+    % LOAD EPOCHED DATA
+    EEG_EO = pop_loadset( 'filename',[ subject '_EO_Clean_Epoch.set'],'filepath', eodir);
+    EEG_EC = pop_loadset( 'filename',[ subject '_EC_Clean_Epoch.set'],'filepath', ecdir);
+    
     % MARK BAD EPOCHS (-500 TO 500 uV THRESHOLD), CHANNEL 1-4 ARE EOG,
     % HENCE THEY ARE EXCLUDED HERE
-    EEG_EO = pop_eegthresh(EEG_EO,1, ...
-        [5:length(EEG_EO.chanlocs)], ...
-        -500, 500, ...
-        -1.024, 1.024, ...
-        0, 0);
-    EEG_EC = pop_eegthresh(EEG_EC,1, ...
-        [5:length(EEG_EC.chanlocs)], ...
-        -500,500, ...
-        -1.024, 1.024, ...
-        0, 0);
-    
-    % REJECT BAD EPOCHS FOR EO AND EC DATA
-    EEG_EO = pop_rejepoch(EEG_EO, EEG_EO.reject.rejthresh,0);
-    EEG_EC = pop_rejepoch(EEG_EC, EEG_EC.reject.rejthresh,0);
-    EEG_EO.setname = [ subject '_EO_epochrej']; % NAME FOR DATASET MENU
-    EEG_EC.setname = [ subject '_EC_epochrej']; % NAME FOR DATASET MENU
-    
-    % SAVE DATA AFTER EPOCH REJECTION
-    EEG_EO = pop_saveset(EEG_EO, ...
-        'filename',[ subject '_EO_epochrej.set'], ...
-        'filepath', eodir);
-    EEG_EC = pop_saveset(EEG_EC, ...
-        'filename',[ subject '_EC_epochrej.set'], ...
-        'filepath', ecdir);
-    
-    %% RUN ICA ON EEG CHANNELS
-    
-    EEG_EO = pop_runica(EEG_EO, 'extended', 1, ...
-        'interupt','on', ...
-        'pca', length(EEG_EO.chanlocs));
-    EEG_EC = pop_runica(EEG_EC, 'extended', 1, ...
-        'interupt', 'on', ...
-        'pca', length(EEG_EC.chanlocs));
-    EEG_EO.setname = [ subject '_EO_ICA']; % NAME FOR DATASET MENU
-    EEG_EC.setname = [ subject '_EC_ICA']; % NAME FOR DATASET MENU
+     EEG_EO = pop_eegthresh(EEG_EO,1, ...
+         [5:length(EEG_EO.chanlocs)], ...
+         -500, 500, ...
+         -1.024, 1.024, ...
+         0, 0);
+     EEG_EC = pop_eegthresh(EEG_EC,1, ...
+         [5:length(EEG_EC.chanlocs)], ...
+         -500,500, ...
+         -1.024, 1.024, ...
+         0, 0);
      
-    % SAVE DATA WITH ICA WEIGHTS
-    EEG_EO = pop_saveset(EEG_EO, 'filename',[ subject '_EO_ICA.set'], ...
-        'filepath', eodir);
-    EEG_EC = pop_saveset(EEG_EC, 'filename',[ subject '_EC_ICA.set'], ...
-        'filepath', ecdir);
+     % REJECT BAD EPOCHS FOR EO AND EC DATA
+     EEG_EO = pop_rejepoch(EEG_EO, EEG_EO.reject.rejthresh,0);
+     EEG_EC = pop_rejepoch(EEG_EC, EEG_EC.reject.rejthresh,0);
+     EEG_EO.setname = [ subject '_EO_epochrej']; % NAME FOR DATASET MENU
+     EEG_EC.setname = [ subject '_EC_epochrej']; % NAME FOR DATASET MENU
+     
+     % SAVE DATA AFTER EPOCH REJECTION
+     EEG_EO = pop_saveset(EEG_EO, ...
+         'filename',[ subject '_EO_epochrej.set'], ...
+         'filepath', eodir);
+     EEG_EC = pop_saveset(EEG_EC, ...
+         'filename',[ subject '_EC_epochrej.set'], ...
+         'filepath', ecdir);
+     
+     %% RUN ICA ON EEG CHANNELS
+     
+     EEG_EO = pop_runica(EEG_EO, 'extended', 1, ...
+         'interupt','on', ...
+         'pca', length(EEG_EO.chanlocs));
+     EEG_EC = pop_runica(EEG_EC, 'extended', 1, ...
+         'interupt', 'on', ...
+         'pca', length(EEG_EC.chanlocs));
+     EEG_EO.setname = [ subject '_EO_ICA']; % NAME FOR DATASET MENU
+     EEG_EC.setname = [ subject '_EC_ICA']; % NAME FOR DATASET MENU
+      
+     % SAVE DATA WITH ICA WEIGHTS
+     EEG_EO = pop_saveset(EEG_EO, 'filename',[ subject '_EO_ICA.set'], ...
+         'filepath', eodir);
+     EEG_EC = pop_saveset(EEG_EC, 'filename',[ subject '_EC_ICA.set'], ...
+         'filepath', ecdir);
+ 
+     % RUN ICLABEL(Pion-Tonachini et al., 2019) TO LABEL COMPONENTS
+     EEG_EO = pop_iclabel(EEG_EO, 'default');
+     EEG_EC = pop_iclabel(EEG_EC, 'default');
+     
+     % MARK COMPONENTS WITH >= 90% PROBABILITY OF BEING NON-BRAIN COMPONENTS
+     EEG_EO = pop_icflag(EEG_EO, ...
+         [NaN NaN;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1]);
+     EEG_EC = pop_icflag(EEG_EC, ...
+         [NaN NaN;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1]);
+     EEG_EO.setname = [ subject '_EO_ICA_marked']; % NAME FOR DATASET MENU
+     EEG_EC.setname = [ subject '_EC_ICA_marked']; % NAME FOR DATASET MENU
+     
+     % SAVE DATA WITH COMPONENTS MARKED FOR REMOVAL
+     EEG_EO = pop_saveset(EEG_EO, ...
+         'filename',[ subject '_EO_ICA_Marked.set'], ...
+         'filepath', eodir);
+     EEG_EC = pop_saveset(EEG_EC, ...
+         'filename',[ subject '_EC_ICA_Marked.set'], ...
+         'filepath', ecdir);
+     
+     % REMOVE SELECTED COMPONENTS
+     EEG_EO = pop_subcomp(EEG_EO, ...
+         [find(EEG_EO.reject.gcompreject == 1)], ...
+         0);
+     EEG_EC = pop_subcomp(EEG_EC, ...
+         [find(EEG_EC.reject.gcompreject == 1)], ...
+         0);
+     EEG_EO.setname = [ subject '_EO_ICA_Removed']; % NAME FOR DATASET MENU
+     EEG_EC.setname = [ subject '_EC_ICA_Removed']; % NAME FOR DATASET MENU
+     
+     % SAVE DATA WITH COMPONENTS REMOVED
+     EEG_EO = pop_saveset(EEG_EO, ...
+         'filename',[ subject '_EO_ICA_Removed.set'], ...
+         'filepath', eodir);
+     EEG_EC = pop_saveset(EEG_EC, ...
+         'filename',[ subject '_EC_ICA_Removed.set'], ...
+         'filepath', ecdir);
+     
+     %% POST ICA
+     
+     % INTERPOLATE CHANNELS USING ORIGINAL CHANNELS
+     EEG_EO = pop_interp(EEG_EO, originalchanlocs, 'spherical');
+     EEG_EC = pop_interp(EEG_EC, originalchanlocs, 'spherical');
+     
+     % REMOVE EOG CHANNELS 1:4
+     EEG_EO = pop_select(EEG_EO, ...
+         'nochannel', {'EOG1' 'EOG2' 'EOG3' 'EOG4'});
+     EEG_EC = pop_select(EEG_EC, ...
+         'nochannel', {'EOG1' 'EOG2' 'EOG3' 'EOG4'});
+     EEG_EO.setname = [ subject '_EO_Preprocessed']; % NAME FOR DATASET MENU
+     EEG_EC.setname = [ subject '_EC_Preprocessed']; % NAME FOR DATASET MENU
+     
+%       FOR SUB-017 ERROR REMOVE EOG CHANNELS
+%       Error using pop_select (line 292)
+%       Wrong channel range
+%
+%       From pop_select:
+%       "if ~isempty(g.channel)
+%            if min(double(g.channel)) < 1 || max(double(g.channel)) > EEG.nbchan  
+%                  % error('Wrong channel range');
+%            end
+%          end"
 
-    % RUN ICLABEL(Pion-Tonachini et al., 2019) TO LABEL COMPONENTS
-    EEG_EO = pop_iclabel(EEG_EO, 'default');
-    EEG_EC = pop_iclabel(EEG_EC, 'default');
-    
-    % MARK COMPONENTS WITH >= 90% PROBABILITY OF BEING NON-BRAIN COMPONENTS
-    EEG_EO = pop_icflag(EEG_EO, ...
-        [NaN NaN;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1]);
-    EEG_EC = pop_icflag(EEG_EC, ...
-        [NaN NaN;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1]);
-    EEG_EO.setname = [ subject '_EO_ICA_marked']; % NAME FOR DATASET MENU
-    EEG_EC.setname = [ subject '_EC_ICA_marked']; % NAME FOR DATASET MENU
-    
-    % SAVE DATA WITH COMPONENTS MARKED FOR REMOVAL
-    EEG_EO = pop_saveset(EEG_EO, ...
-        'filename',[ subject '_EO_ICA_Marked.set'], ...
-        'filepath', eodir);
-    EEG_EC = pop_saveset(EEG_EC, ...
-        'filename',[ subject '_EC_ICA_Marked.set'], ...
-        'filepath', ecdir);
-    
-    % REMOVE SELECTED COMPONENTS
-    EEG_EO = pop_subcomp(EEG_EO, ...
-        [find(EEG_EO.reject.gcompreject == 1)], ...
-        0);
-    EEG_EC = pop_subcomp(EEG_EC, ...
-        [find(EEG_EC.reject.gcompreject == 1)], ...
-        0);
-    EEG_EO.setname = [ subject '_EO_ICA_Removed']; % NAME FOR DATASET MENU
-    EEG_EC.setname = [ subject '_EC_ICA_Removed']; % NAME FOR DATASET MENU
-    
-    % SAVE DATA WITH COMPONENTS REMOVED
-    EEG_EO = pop_saveset(EEG_EO, ...
-        'filename',[ subject '_EO_ICA_Removed.set'], ...
-        'filepath', eodir);
-    EEG_EC = pop_saveset(EEG_EC, ...
-        'filename',[ subject '_EC_ICA_Removed.set'], ...
-        'filepath', ecdir);
-    
-    %% POST ICA
-    
-    % INTERPOLATE CHANNELS USING ORIGINAL CHANNELS
-    EEG_EO = pop_interp(EEG_EO, originalchanlocs, 'spherical');
-    EEG_EC = pop_interp(EEG_EC, originalchanlocs, 'spherical');
-    
-    % REMOVE EOG CHANNELS 1:4
-    EEG_EO = pop_select(EEG_EO,'nochannel', 1:4);
-    EEG_EC = pop_select(EEG_EC,'nochannel', 1:4);
-    EEG_EO.setname = [ subject '_EO_Preprocessed']; % NAME FOR DATASET MENU
-    EEG_EC.setname = [ subject '_EC_Preprocessed']; % NAME FOR DATASET MENU
-    
-    % SAVE PREPROCESSED DATA
-    EEG_EO = pop_saveset(EEG_EO, ...
-        'filename',[ subject '_EO_Preprocessed.set'], ...
-        'filepath', eodir);
-    EEG_EC = pop_saveset(EEG_EC, ...
-        'filename',[ subject '_EC_Preprocessed.set'], ...
-        'filepath', ecdir);
-    
+%   Works fine when using GUI for some reason.
 
+
+     
+     % SAVE PREPROCESSED DATA
+     EEG_EO = pop_saveset(EEG_EO, ...
+         'filename',[ subject '_EO_Preprocessed.set'], ...
+         'filepath', eodir);
+     EEG_EC = pop_saveset(EEG_EC, ...
+         'filename',[ subject '_EC_Preprocessed.set'], ...
+         'filepath', ecdir);
+   
     %% OTHER THINGS TO CONSIDER
     
     % TRIM DATASET (BETWEEN REREFERENCE AND RESAMPLE?)
@@ -359,13 +379,13 @@ for s = 5 %:numsubjects
     
     % CONSIDER PREP PIPELINE (2015) AND ROBUST PIPELINE (2019)
     
-    % CREATE SUBJECT FOLDERS FOR PREPROCESSED DATA?
+    % CREATE SUBJECT FOLDERS FOR PREPROCESSED DATA? Preprocess folder?
     
     % CODE FOR SPLITTING INTO RS/SD UP TO DATE?
     
     % IS CHANNEL LOCATIONS WORKING CORRECTLY?
     
-    % RUN HIGH-PASS WITH CLEAN_RAW, THEN NOTCH, THEN RUN THE REST?
+    % RUN HIGH-PASS WITH CLEAN_RAW, THEN NOTCH, THEN RUN THE REST OF CLEAN?
 end
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
