@@ -18,14 +18,11 @@ addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0')
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
 
-% DEFINE THE SET OF SUBJECTS
-% subject 24 missing. Cancelled participation? Sub-010 excluded (no BAS)
+% DEFINE THE SET OF SUBJECTS THAT WERE ETHICALLY APPROVED
 % REMOVING SUB-002 TEMPORARILY. WHICH SHOULD I USE LATER AS I HAVE 2 FILES?
-subject_list = {'sub-001', 'sub-003', 'sub-004', 'sub-005', ...
-    'sub-006', 'sub-007', 'sub-008', 'sub-009', 'sub-011', ...
-    'sub-012', 'sub-013', 'sub-014', 'sub-015', 'sub-016', ...
-    'sub-017', 'sub-018', 'sub-019', 'sub-020', 'sub-021', ...
-    'sub-022', 'sub-023', 'sub-025', 'sub-026', 'sub-027', ...
+subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
+    'sub-011', 'sub-013', 'sub-014', 'sub-015', 'sub-019', ...
+    'sub-020', 'sub-021', 'sub-022', 'sub-025', 'sub-027', ...
     'sub-028', 'sub-029', 'sub-030', 'sub-031', 'sub-032'};
 numsubjects = length(subject_list);
 
@@ -169,21 +166,56 @@ for s = 1:numsubjects
         'Cutoff', 50, ...
         'Order', 180);
     
-    % SAVE ORIGINAL CHANNELS BEFORE REMOVING BAD ONES
+    % SAVE ORIGINAL DATA BEFORE REMOVING BAD CHANNELS
     originalchanlocs = EEG.chanlocs;
+    oldchans = {EEG.chanlocs.labels};
+    origEEG_EO = EEG_EO;
     
-    % USE CLEAN_RAW TO HIGH-PASS FILTER (1HZ), CLEAN DATA, AND REMOVE BAD
-    % CHANNELS
-    EEG_EO = pop_clean_rawdata(EEG_EO, 'FlatlineCriterion',6, ...
-        'ChannelCriterion',0.7, ...
-        'LineNoiseCriterion',4, ...
+    % USE CLEAN_RAW TO REMOVE BAD CHANNELS
+    EEG_EO = pop_clean_rawdata(EEG_EO, 'FlatlineCriterion', 6, ...
+        'ChannelCriterion', 0.7, ...
+        'LineNoiseCriterion', 4, ...
+        'Highpass', [0.25 1], ...
+        'BurstCriterion', 'off', ...
+        'WindowCriterion', 'off', ...
+        'availableRAM_GB', 8, ...
+        'BurstRejection', 'off', ...
+        'Distance', 'Euclidian');
+    
+    newchans_EO = {EEG_EO.chanlocs.labels}; % SAVE NEW EO CHANS AFTER CLEAN
+    chandiff_EO = setdiff(oldchans, newchans_EO); % DIFFERENCE OLD AND NEW CHANNELS
+    
+    % REMOVE EOG CHANNELS FROM LIST OF REMOVED CHANNELS
+    if any(strcmp(chandiff_EO,'LO2'))
+        chandiff_EO(strncmpi(chandiff_EO,'LO2',3)) = [];
+    end
+    if any(strcmp(chandiff_EO,'SO2'))
+        chandiff_EO(strncmpi(chandiff_EO,'SO2',3)) = [];
+    end
+    if any(strcmp(chandiff_EO,'IO2'))
+        chandiff_EO(strncmpi(chandiff_EO,'IO2',3)) = [];
+    end
+    if any(strcmp(chandiff_EO,'LO1'))
+        chandiff_EO(strncmpi(chandiff_EO,'LO1',3)) = [];
+    end
+    
+    % GO BACK TO DATA BEFORE CLEAN_RAW AND REMOVE ONLY EEG CHANNELS
+    if ~isempty(chandiff_EO)
+        EEG_EO = pop_select(origEEG_EO, 'nochannel', chandiff_EO);
+    end
+    
+    % HIGH-PASS FILTER AT 1 HZ AND PERFORM ARTIFACT SUBSPACE RECONSTRUCTION
+    %(ASR) WITH CLEAN_RAW
+    EEG_EO = pop_clean_rawdata(EEG_EO, 'FlatlineCriterion', 'off', ...
+        'ChannelCriterion', 'off',  ...
+        'LineNoiseCriterion', 'off', ...
         'Highpass', [0.25 1], ...
         'BurstCriterion', 20, ...
         'WindowCriterion', 0.25, ...
-        'availableRAM_GB', 8, ... % ADDED CORRECTLY?
+        'availableRAM_GB', 8, ...
         'BurstRejection', 'on', ...
-        'Distance','Euclidian', ...
-        'WindowCriterionTolerances', [-Inf 7]);
+        'Distance', 'Euclidian', ...
+        'WindowCriterionTolerances', [-Inf 7] );
     EEG_EO.setname = [subject '_EO_Clean']; % NAME FOR DATASET MENU
     
     % SAVE CLEANED EO DATA FOR VISUAL EXAMINATION
@@ -251,17 +283,56 @@ for s = 1:numsubjects
         'Cutoff', 50, ...
         'Order', 180);
     
-    % USE CLEAN_RAW TO HIGH-PASS FILTER (1HZ), CLEAN DATA, AND REMOVE BAD
-    % CHANNELS
-    EEG_EC = pop_clean_rawdata(EEG_EC, 'FlatlineCriterion',6, ...
-        'ChannelCriterion',0.7, ...
-        'LineNoiseCriterion',4, ...
+   % SAVE ORIGINAL DATA BEFORE REMOVING BAD CHANNELS
+    originalchanlocs = EEG.chanlocs;
+    oldchans = {EEG.chanlocs.labels};
+    origEEG_EC = EEG_EC;
+    
+    % USE CLEAN_RAW TO REMOVE BAD CHANNELS
+    EEG_EC = pop_clean_rawdata(EEG_EC, 'FlatlineCriterion', 6, ...
+        'ChannelCriterion', 0.7, ...
+        'LineNoiseCriterion', 4, ...
+        'Highpass', [0.25 1], ...
+        'BurstCriterion', 'off', ...
+        'WindowCriterion', 'off', ...
+        'availableRAM_GB', 8, ...
+        'BurstRejection', 'off', ...
+        'Distance', 'Euclidian');
+    
+    newchans_EC = {EEG_EC.chanlocs.labels}; % SAVE NEW EO CHANS AFTER CLEAN
+    chandiff_EC = setdiff(oldchans, newchans_EC); % DIFFERENCE OLD AND NEW CHANNELS
+    
+    % REMOVE EOG CHANNELS FROM LIST OF REMOVED CHANNELS
+    if any(strcmp(chandiff_EC,'LO2'))
+        chandiff_EC(strncmpi(chandiff_EC,'LO2',3)) = [];
+    end
+    if any(strcmp(chandiff_EC,'SO2'))
+        chandiff_EC(strncmpi(chandiff_EC,'SO2',3)) = [];
+    end
+    if any(strcmp(chandiff_EC,'IO2'))
+        chandiff_EC(strncmpi(chandiff_EC,'IO2',3)) = [];
+    end
+    if any(strcmp(chandiff_EC,'LO1'))
+        chandiff_EC(strncmpi(chandiff_EC,'LO1',3)) = [];
+    end
+    
+    % GO BACK TO DATA BEFORE CLEAN_RAW AND REMOVE ONLY EEG CHANNELS
+    if ~isempty(chandiff_EO)
+        EEG_EC = pop_select(origEEG_EC, 'nochannel', chandiff_EC);
+    end
+    
+    % HIGH-PASS FILTER AT 1 HZ AND PERFORM ARTIFACT SUBSPACE RECONSTRUCTION
+    %(ASR) WITH CLEAN_RAW
+    EEG_EC = pop_clean_rawdata(EEG_EC, 'FlatlineCriterion', 'off', ...
+        'ChannelCriterion', 'off',  ...
+        'LineNoiseCriterion', 'off', ...
         'Highpass', [0.25 1], ...
         'BurstCriterion', 20, ...
         'WindowCriterion', 0.25, ...
+        'availableRAM_GB', 8, ...
         'BurstRejection', 'on', ...
-        'Distance','Euclidian', ...
-        'WindowCriterionTolerances', [-Inf 7]);
+        'Distance', 'Euclidian', ...
+        'WindowCriterionTolerances', [-Inf 7] );
     EEG_EC.setname = [subject '_EC_Clean']; % NAME FOR DATASET MENU
     
     % SAVE CLEANED RS DATA FOR VISUAL EXAMINATION
@@ -339,7 +410,7 @@ for s = 1:numsubjects
              'filepath', ecdir);
      end
      
-     %% RUN ICA ON EEG CHANNELS
+     %% RUN ICA ON ALL CHANNELS
      
      EEG_EO = pop_runica(EEG_EO, 'extended', 1, ...
          'interupt','on', ...
@@ -409,10 +480,10 @@ for s = 1:numsubjects
      EEG_EC.setname = [subject '_EC_Interp']; % NAME FOR DATASET MENU
      
      % REMOVE EOG CHANNELS 1:4
-%      EEG_EO = pop_select(EEG_EO, ...
-%          'nochannel', {'EOG1' 'EOG2' 'EOG3' 'EOG4'});
-%      EEG_EC = pop_select(EEG_EC, ...
-%          'nochannel', {'EOG1' 'EOG2' 'EOG3' 'EOG4'});
+     EEG_EO = pop_select(EEG_EO, ...
+          'nochannel', {'LO2' 'SO2' 'IO2' 'LO1'});
+     EEG_EC = pop_select(EEG_EC, ...
+          'nochannel', {'LO2' 'SO2' 'IO2' 'LO1'});
      EEG_EO.setname = [subject '_EO_Preprocessed']; % NAME FOR DATASET MENU
      EEG_EC.setname = [subject '_EC_Preprocessed']; % NAME FOR DATASET MENU
      
@@ -424,6 +495,11 @@ for s = 1:numsubjects
          'filename',[subject '_EC_Preprocessed.set'], ...
          'filepath', final);
    
+     % SAVE LIST OF INTERPOLATED CHANNEL FOR EACH SUBJECT, FOR REVIEW
+     
+     interchans_EO(s) = {chandiff_EO};
+     interchans_EC(s) = {chandiff_EC};
+     
     %% OTHER THINGS TO CONSIDER
     
     % TRIM DATASET (BETWEEN REREFERENCE AND RESAMPLE?). TURKU
@@ -486,6 +562,11 @@ for s = 1:numsubjects
     
     % SPEED UP ICA BY DOWNSAMPLING TO 100 OR USE HIGH-PASS FILTER BEFORE?
     % SEE MAKOTO
+    
+    % INCLUDE EOG CHANNELS IN ICA UNLESS THEY ARE BIPOLAR-REFERENCED TO EACH OTHER
 end
+
+save InterpolatedChannelsEO.mat interchans_EO
+save InterpolatedChannelsEO.mat interchans_EO
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
