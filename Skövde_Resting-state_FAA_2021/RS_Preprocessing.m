@@ -495,8 +495,7 @@ for s = 1:numsubjects
          'filename',[subject '_EC_Preprocessed.set'], ...
          'filepath', final);
    
-     % SAVE LIST OF INTERPOLATED CHANNEL FOR EACH SUBJECT, FOR REVIEW
-     
+     % SAVE LIST OF INTERPOLATED CHANNELS FOR EACH SUBJECT, FOR REVIEW
      interchans_EO(s) = {chandiff_EO};
      interchans_EC(s) = {chandiff_EC};
      
@@ -563,9 +562,13 @@ for s = 1:numsubjects
     % SPEED UP ICA BY DOWNSAMPLING TO 100 OR USE HIGH-PASS FILTER BEFORE?
     % SEE MAKOTO
     
-    % INCLUDE EOG CHANNELS IN ICA UNLESS THEY ARE BIPOLAR-REFERENCED TO EACH OTHER
+    % "INCLUDE EOG CHANNELS IN ICA UNLESS THEY ARE BIPOLAR-REFERENCED TO
+    % EACH OTHER"
+    
+    % MY EPOCHS ARE NOT 2.048 AFTER PREPROCESSING. PROBLEM?
 end
 
+% SAVE INTERPOLATED CHANNELS AS .MAT
 save InterpolatedChannelsEO.mat interchans_EO
 save InterpolatedChannelsEO.mat interchans_EO
 
