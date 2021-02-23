@@ -19,7 +19,6 @@ cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
 
 % DEFINE THE SET OF SUBJECTS THAT WERE ETHICALLY APPROVED
-% REMOVING SUB-002 TEMPORARILY. WHICH SHOULD I USE LATER AS I HAVE 2 FILES?
 subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
     'sub-011', 'sub-013', 'sub-014', 'sub-015', 'sub-019', ...
     'sub-020', 'sub-021', 'sub-022', 'sub-025', 'sub-027', ...
@@ -30,7 +29,7 @@ numsubjects = length(subject_list);
 eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
 rawfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_RAW\';
 
-%PATH TO LOCALIZER FILE (INCLUDES CHANNEL LOCATIONS)
+%PATH TO LOCALIZER FILE (INCLUDES CHANNEL LOCATIONS AND TEMPLATES)
 localizer = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Localizer\';
 
 % CREATE FOLDERS FOR THE PREPROCESSED DATA
@@ -82,7 +81,7 @@ for s = 1:numsubjects
     % REMOVE FIRST(G.TEC TIME) AND LAST (EMPTY) CHANNELS
     EEG = pop_select(EEG, 'nochannel', [1 34]);
     
-    % IMPORT CHANNELS WITH Cz AS REFERENCE. ADD EOG AND Cz COORDINATES
+    % IMPORT CHANNELS WITH Cz AS REFERENCE. ADD Cz COORDINATES
     EEG = pop_chanedit(EEG, 'load',{[localizer 'Locations_32Channels.ced'], ...
         'filetype','autodetect'}, 'append', EEG.nbchan, ...
         'changefield', {33, 'labels', 'Zc'}, ...
@@ -138,7 +137,7 @@ for s = 1:numsubjects
     EEG_SDFAA = pop_saveset(EEG_SDFAA, 'filename',[subject '_SD.set'], ...
         'filepath', sddir);
     
-    %% EXTRACT AND CLEAN EYES OPEN DATA
+    %% EXTRACT AND CLEAN EYES OPEN RESTING-STATE DATA
      
     % OPEN RS FILE FROM PREVIOUS STEP
     EEG = pop_loadset('filename',[subject '_RS.set'],'filepath', rsdir);
@@ -258,7 +257,7 @@ for s = 1:numsubjects
         EEG_EO = pop_saveset(EEG_EO, 'filename',[subject '_EO_Clean_Epoch.set'], ...
             'filepath', eodir);
     
-    %% EXTRACT AND CLEAN EYES CLOSED DATA
+    %% EXTRACT AND CLEAN EYES CLOSED RESTING-STATE DATA
     
     % CREATE 1 MINUTE EPOCHS OF EYES CLOSED (EC) CONDITION. EVENT CODE 20
     EEG_EC = pop_epoch(EEG, {'20'}, [0 59.9], ...
@@ -499,7 +498,15 @@ for s = 1:numsubjects
      interchans_EO(s) = {chandiff_EO};
      interchans_EC(s) = {chandiff_EC};
      
-    %% OTHER THINGS TO CONSIDER
+end
+
+% SAVE INTERPOLATED CHANNELS AS .MAT
+save InterpolatedChannelsEO.mat interchans_EO
+save InterpolatedChannelsEC.mat interchans_EC
+
+fprintf('\n\n\n**** FINISHED ****\n\n\n');
+
+%% OTHER THINGS TO CONSIDER
     
     % TRIM DATASET (BETWEEN REREFERENCE AND RESAMPLE?). TURKU
     % EEG  = pop_eegtrim(EEG, 0, 3000 , 'post',  3000, 'pre',  0);
@@ -566,10 +573,3 @@ for s = 1:numsubjects
     % EACH OTHER"
     
     % MY EPOCHS ARE NOT 2.048 AFTER PREPROCESSING. PROBLEM?
-end
-
-% SAVE INTERPOLATED CHANNELS AS .MAT
-save InterpolatedChannelsEO.mat interchans_EO
-save InterpolatedChannelsEC.mat interchans_EC
-
-fprintf('\n\n\n**** FINISHED ****\n\n\n');
