@@ -167,7 +167,7 @@ for s = 1:numsubjects
         'Order', 180);
     
     % SAVE ORIGINAL DATA BEFORE REMOVING BAD CHANNELS
-    originalchanlocs = EEG.chanlocs;
+    originalchanlocs = EEG.chanlocs; % FOR INTERPOLATION LATER
     oldchans = {EEG.chanlocs.labels};
     origEEG_EO = EEG_EO;
     
@@ -183,7 +183,7 @@ for s = 1:numsubjects
         'Distance', 'Euclidian');
     
     newchans_EO = {EEG_EO.chanlocs.labels}; % SAVE NEW EO CHANS AFTER CLEAN
-    chandiff_EO = setdiff(oldchans, newchans_EO); % DIFFERENCE OLD AND NEW CHANNELS
+    chandiff_EO = setdiff(oldchans, newchans_EO); % REMOVED CHANNELS
     
     % REMOVE EOG CHANNELS FROM LIST OF REMOVED CHANNELS
     if any(strcmp(chandiff_EO,'LO2'))
@@ -284,7 +284,7 @@ for s = 1:numsubjects
         'Order', 180);
     
    % SAVE ORIGINAL DATA BEFORE REMOVING BAD CHANNELS
-    originalchanlocs = EEG.chanlocs;
+    originalchanlocs = EEG.chanlocs; % FOR INTERPOLATION LATER
     oldchans = {EEG.chanlocs.labels};
     origEEG_EC = EEG_EC;
     
@@ -473,7 +473,7 @@ for s = 1:numsubjects
      
      %% POST ICA
      
-     % INTERPOLATE CHANNELS USING ORIGINAL CHANNELS
+     % INTERPOLATE CHANNELS USING ORIGINAL CHANNEL LOCATIONS
      EEG_EO = pop_interp(EEG_EO, originalchanlocs, 'spherical');
      EEG_EC = pop_interp(EEG_EC, originalchanlocs, 'spherical');
      EEG_EO.setname = [subject '_EO_Interp']; % NAME FOR DATASET MENU
@@ -570,6 +570,6 @@ end
 
 % SAVE INTERPOLATED CHANNELS AS .MAT
 save InterpolatedChannelsEO.mat interchans_EO
-save InterpolatedChannelsEO.mat interchans_EO
+save InterpolatedChannelsEC.mat interchans_EC
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
