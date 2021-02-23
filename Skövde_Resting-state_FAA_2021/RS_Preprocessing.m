@@ -107,7 +107,7 @@ for s = 1:numsubjects
         'sph_theta_besa', {0}, ...
         'sph_phi_besa', {0}));
     
-    % RESAMPLE DATASET FROM 512 TO 256 HZ
+    % RESAMPLE DATASET FROM 512 TO 250 HZ
     EEG = pop_resample(EEG, 256);
     
     %% EXTRACT RESTING-STATE (RS) AND STATE-DEPENDENT (SD) DATA
@@ -573,3 +573,7 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
     % EACH OTHER"
     
     % MY EPOCHS ARE NOT 2.048 AFTER PREPROCESSING. PROBLEM?
+    
+    % SHOULD I CHANGE SAMPLING RATE TO 250 TO GET 2^N DATA POINTS IN THE
+    % EPOCHS? I BELIEVE I HAVE 524 NOW, CHANGING TO 250 HZ GIVES 512. SMITH
+    % SEE FRAMES PER EPOCH IN GUI OR EEG.pnts
