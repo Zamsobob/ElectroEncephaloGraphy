@@ -61,7 +61,7 @@ final = [ eegfolder 'EEG_Preprocessed'];
 %% LOADING RAW FAA DATA AND RELEVANT FILES
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 1:numsubjects
+for s = 2 %:numsubjects
     
     subject = subject_list{s};
     
@@ -171,7 +171,7 @@ for s = 1:numsubjects
     origEEG_EO = EEG_EO;
     
     % USE CLEAN_RAW TO REMOVE BAD CHANNELS
-    EEG_EO = pop_clean_rawdata(EEG_EO, 'FlatlineCriterion', 6, ...
+    EEG_EO = pop_clean_rawdata(EEG_EO, 'FlatlineCriterion', 5, ...
         'ChannelCriterion', 0.7, ...
         'LineNoiseCriterion', 4, ...
         'Highpass', [0.25 1], ...
@@ -288,7 +288,7 @@ for s = 1:numsubjects
     origEEG_EC = EEG_EC;
     
     % USE CLEAN_RAW TO REMOVE BAD CHANNELS
-    EEG_EC = pop_clean_rawdata(EEG_EC, 'FlatlineCriterion', 6, ...
+    EEG_EC = pop_clean_rawdata(EEG_EC, 'FlatlineCriterion', 5, ...
         'ChannelCriterion', 0.7, ...
         'LineNoiseCriterion', 4, ...
         'Highpass', [0.25 1], ...
@@ -521,8 +521,6 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
     
     % LOW-PASS FILTER AT 40 HZ INSTEAD OF NOTCH? OR BOTH?
     
-    % REJECT EPOCHS AGAIN AFTER -500 +500 UV? WITH SD? SEE MAKOTO
-    
     % USE CLEANLINE OR CLEANLINENOISE. DOES NOT WORK WELL ATM.
    
     % LORETA? SINGLE EQUIVALENT CURRENT DIPOLES?
@@ -537,34 +535,22 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
     
     % CODE FOR SPLITTING INTO RS/SD UP TO DATE?
     
-    % IS CHANNEL LOCATIONS WORKING CORRECTLY?
-    
     % RUN HIGH-PASS WITH CLEAN_RAW, THEN NOTCH, THEN RUN THE REST OF CLEAN?
     
     % Add "save_everything" for possibility to skip intermediate steps.
     
     % DOWNSAMPLE AFTER ICA? SEE SMITH ET AL
+    % CANT RESAMPLE AFTER EPOCHING SO CHANGED IT BACK. WHY DID THEY DO IT?
     
-    % 1-50 HZ BANDPASS? WHY? SMTIH ET AL.
-    
-    % SAVE BEFORE AND AFTER INTERP?
-    
-    % USE availableRAM_GB OPTION FOR CLEAN_RAW!
-    
-    % SAVE EEG.etc AFTER CLEAN_RAW? AND OTHER VARIABLES I NEED LATER?
-    % ESPECIALLY WHICH ELECTRODES WERE REMOVED/INTERPOLATED
-    
-    % LOOK AT THE CLEAN_EPOCH FILES. ITS AFTER CLEANING
-    % HOW MANY CHANNELS REMOVED ON EACH SUB? CHANGED SETTINGS CLEAN_RAW.
+    % 1-50 HZ BANDPASS? WHY? SMTIH ET AL
     
     % WHEN TO ADD EOG COORDINATES? AFTER ICA AND BEFORE INTERP?
     
     % trimOutlier https://github.com/sccn/trimOutlier (UNEPOCHED DATA)
     
-    % PROJECT ICA BACK TO 0.1 HZ HIGH-PASS DATA? MAYBE NOT, MAKOTO.
+    % PROJECT ICA BACK TO 0.1 HZ HIGH-PASS DATA? MAYBE NOT, MAKOTO
     
-    %  CANT REASMPLE AFTER EPOCHING SO CHANGED IT BACK
-    
+    % REJECT EPOCHS AGAIN AFTER -500 +500 UV? WITH SD? 
     % Improbability test with 6SD for single channels and 2SD for all channels
     % EEG = pop_jointprob(EEG,1,[1:21] ,6,2,0,0,0,[],0);
     % EEG = pop_rejepoch(EEG,find(EEG.reject.rejglobal),1)
@@ -578,7 +564,7 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
     % "INCLUDE EOG CHANNELS IN ICA UNLESS THEY ARE BIPOLAR-REFERENCED TO
     % EACH OTHER"
     
-    % MY EPOCHS ARE NOT 2.048 AFTER PREPROCESSING. PROBLEM?
+    % MY EPOCHS ARE NOT 2.048 AFTER EPOCHING. PROBLEM?
     
     % SHOULD I CHANGE SAMPLING RATE TO 250 TO GET 2^N DATA POINTS IN THE
     % EPOCHS? I BELIEVE I HAVE 524 NOW, CHANGING TO 250 HZ GIVES 512. SMITH
