@@ -12,10 +12,16 @@ pop_editoptions( 'option_single', 0);
 addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0')
 % WORKING DIRECTORY
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
+
+% PATH TO THE EEG AND PREPROCESSED FOLDERS
+eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
+final = [ eegfolder 'EEG_Preprocessed'];
+
 % CREATE FOLDER TO SAVE FILES IN
 if ~exist('EEG_TFA', 'dir')
     mkdir EEG_Preprocessed EEG_TFA;
 end
+tfadir = [final filesep 'EEG_TFA'];
 
 % DEFINE THE SET OF SUBJECTS THAT WERE ETHICALLY APPROVED
 subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
@@ -23,11 +29,6 @@ subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
     'sub-020', 'sub-021', 'sub-022', 'sub-025', 'sub-027', ...
     'sub-028', 'sub-029', 'sub-030', 'sub-031', 'sub-032'};
 numsubjects = length(subject_list);
-
-% PATH TO THE EEG AND PREPROCESSED FOLDERS
-eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
-final = [ eegfolder 'EEG_Preprocessed'];
-
 
 %% TIME-FRQUENCY ANALYSIS
 
@@ -69,6 +70,13 @@ for s = 1:numsubjects
         'chanlocs', EEG_EO.chanlocs, ...
         'freqrange', [8 13] ...
         'plot', off);
+    
+    EEG_EO = pop_saveset(EEG_EO, ...
+         'filename',[subject '_EO_Spectopo.set'], ...
+         'filepath', final);
+     EEG_EC = pop_saveset(EEG_EC, ...
+         'filename',[subject '_EC_Spectopo.set'], ...
+         'filepath', final);
     
 end
 
