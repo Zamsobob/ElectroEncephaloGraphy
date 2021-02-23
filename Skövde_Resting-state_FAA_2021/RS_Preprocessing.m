@@ -108,7 +108,7 @@ for s = 1:numsubjects
         'sph_phi_besa', {0}));
     
     % RESAMPLE DATASET FROM 512 TO 250 HZ
-    EEG = pop_resample(EEG, 256);
+    EEG = pop_resample(EEG, 250);
     
     %% EXTRACT RESTING-STATE (RS) AND STATE-DEPENDENT (SD) DATA
     % DEFINE WHERE TO SPLIT TRIALS. RS PERIOD ENDS AFTER 16TH EVENT.
@@ -494,15 +494,21 @@ for s = 1:numsubjects
          'filename',[subject '_EC_Preprocessed.set'], ...
          'filepath', final);
    
-     % SAVE LIST OF INTERPOLATED CHANNELS FOR EACH SUBJECT, FOR REVIEW
+     % STORE LIST OF INTERPOLATED CHANNELS FOR EACH SUBJECT
      interchans_EO(s) = {chandiff_EO};
      interchans_EC(s) = {chandiff_EC};
+     
+     % STORE NUMBER OF EPOCHS FOR EACH SUBJECT
+     numepochs_EO(s) = {length(EEG_EO.epoch)};
+     numepochs_EC(s) = {length(EEG_EC.epoch)};
      
 end
 
 % SAVE INTERPOLATED CHANNELS AS .MAT
 save InterpolatedChannelsEO.mat interchans_EO
 save InterpolatedChannelsEC.mat interchans_EC
+save NumberOfEpochsEO.mat numepochs_EO
+save NumberOfEpochsEC.mat numepochs_EC
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
 
@@ -539,7 +545,7 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
     
     % DOWNSAMPLE AFTER ICA? SEE SMITH ET AL
     
-    % 1-50 HZ BANDPASS? WHY? SMTIH ET AL
+    % 1-50 HZ BANDPASS? WHY? SMTIH ET AL.
     
     % SAVE BEFORE AND AFTER INTERP?
     
