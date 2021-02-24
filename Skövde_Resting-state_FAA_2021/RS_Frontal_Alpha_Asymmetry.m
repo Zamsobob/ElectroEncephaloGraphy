@@ -37,6 +37,7 @@ numsubjects = length(subject_list);
 nchans_left = [9 11 13 15]; % LEFT = [AF3 F7 F5 F3]
 nchans_right = [10 12 14 16]; % RIGHT = [AF4 F8 F6 F4]
 
+
 for s = 1:2 %:numsubjects
     
     subject = subject_list{s};
@@ -44,86 +45,53 @@ for s = 1:2 %:numsubjects
     % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
     subjectfolder = [rawfolder subject '\'];
     
-    % LOAD PREPROCESSED EO AND EC DATA
+    % LOAD PREPROCESSED EO AND EC DATASETS
     EEG_EO = pop_loadset('filename',[subject '_EO_Preprocessed.set'],'filepath', final);
     EEG_EC = pop_loadset('filename',[subject '_EC_Preprocessed.set'],'filepath', final);
     
+    % CREATE LEFT AND RIGHT ELECTRODE CLUSTERS
+    EO_eleclust_left = mean(EEG_EO.data(nchans_left,:,:),1);
+    EO_eleclust_right = mean(EEG_EO.data(nchans_right,:,:),1); 
+    EC_eleclust_left = mean(EEG_EC.data(nchans_left,:,:),1);
+    EC_eleclust_right = mean(EEG_EC.data(nchans_right,:,:),1);
+
+    
     % COMPUTE THE POWER SPECTAL DENSITY (PSD) OF THE EPOCHS AT LEFT ELECTRODES
-    [EC_spect_left, EC_freq_left] = spectopo(EEG_EC.data(nchans_left, :), ...
-        EEG_EC.pnts, EEG_EC.srate, ...
-        'chanlocs', EEG_EC.chanlocs, ...
-        'freqrange', [8 13], ...
-        'plot', 'off');
-    [EO_spect_left, EO_freq_left] = spectopo(EEG_EO.data(nchans_left, :), ...
+    [EO_spect_L, EO_freq_L] = spectopo(EO_eleclust_left, ...
         EEG_EO.pnts, EEG_EO.srate, ...
         'chanlocs', EEG_EO.chanlocs, ...
-        'freqrange', [8 13], ...
+        'freqfac', 2, ...
         'plot', 'off'); 
+    [EC_spect_L, EC_freq_L] = spectopo(EC_eleclust_left, ...
+        EEG_EC.pnts, EEG_EC.srate, ...
+        'chanlocs', EEG_EC.chanlocs, ...
+        'freqfac', 2, ...
+        'plot', 'off');
 
     % COMPUTE THE POWER SPECTAL DENSITY (PSD) OF THE EPOCHS AT RIGHT ELECTRODES
-    [EC_spect_right, EC_freq_right] = spectopo(EEG_EC.data(nchans_right, :), ...
-        EEG_EC.pnts, EEG_EC.srate, ...
-        'chanlocs', EEG_EC.chanlocs, ...
-        'freqrange', [8 13], ...
-        'plot', 'off');
-    [EO_spect_right, EO_freq_right] = spectopo(EEG_EO.data(nchans_right, :), ...
+    [EO_spect_R, EO_freq_R] = spectopo(EO_eleclust_right, ...
         EEG_EO.pnts, EEG_EO.srate, ...
         'chanlocs', EEG_EO.chanlocs, ...
-        'freqrange', [8 13], ...
+        'freqfac', 2, ...
+        'plot', 'off');
+    [EC_spect_R, EC_freq_R] = spectopo(EC_eleclust_right, ...
+        EEG_EC.pnts, EEG_EC.srate, ...
+        'chanlocs', EEG_EC.chanlocs, ...
+        'freqfac', 2, ...
         'plot', 'off');
     
-    % EO POWER SPECTRA
-    EO_spect_AF3_L{s, 1} = [subject '_EO_spect_AF3_L'];
-    EO_spect_AF3_L{s, 2} = EO_spect_left(1, :);
+     
+    alphaindex = find(EO_freq_R >= 8 & EO_freq_R <= 13);
+    % TOTAL ALPHA POWER LEFT ELECTRODE CLUSTER FOR EO AND EC
+    % ROWS ARE SUBJECTS
+    EO_alphapower_L(s,1) = log(mean(EO_spect_L(alphaindex)));
+    EC_alphapower_L(s,1) = log(mean(EC_spect_L(alphaindex)));
+    % TOTAL ALPHA POWER RIGHT ELECTRODE CLUSTER FOR EO AND EC
+    EO_alphapower_R(s,1) = log(mean(EO_spect_R(alphaindex)));
+    EC_alphapower_R(s,1) = log(mean(EC_spect_R(alphaindex)));
     
-    EO_spect_F3_L{s, 1} = [subject '_EO_spect_F3_L'];
-    EO_spect_F3_L{s, 2} = EO_spect_left(4, :);
-    
-    EO_spect_F5_L{s, 1} = [subject '_EO_spect_F5_L'];
-    EO_spect_F5_L{s, 2} = EO_spect_left(3, :);
-    
-    EO_spect_F7_L{s, 1} = [subject '_EO_spect_F7_L'];
-    EO_spect_F7_L{s, 2} = EO_spect_left(2, :);
-    
-    EO_spect_AF4_R{s, 1} = [subject '_EO_spect_AF4_R'];
-    EO_spect_AF4_R{s, 2} = EO_spect_left(1, :);
-    
-    EO_spect_F4_R{s, 1} = [subject '_EO_spect_F4_R'];
-    EO_spect_F4_R{s, 2} = EO_spect_left(4, :);
-    
-    EO_spect_F6_R{s, 1} = [subject '_EO_spect_F6_R'];
-    EO_spect_F6_R{s, 2} = EO_spect_left(3, :);
-    
-    EO_spect_F8_R{s, 1} = [subject '_EO_spect_F8_R'];
-    EO_spect_F8_R{s, 2} = EO_spect_left(2, :);
-    
-    % CALCULATE TOTAL ALPHA POWER (uV^2) BY SUMMING ALL SPECTRAL POINTS
-    
-    EO_alpha_power_AF3_L{s, 1} = [subject '_avg_EO_spect_AF3_L'];
-    EO_alpha_power_AF3_L{s, 2} = sum(EO_spect_AF3_L{s,2})
-    
-    EO_alpha_power_F3_L{s, 1} = [subject '_avg_EO_spect_F3_L'];
-    EO_alpha_power_F3_L{s, 2} = sum(EO_spect_F3_L{s,2})
-    
-    EO_alpha_power_F5_L{s, 1} = [subject '_avg_EO_spect_F5_L'];
-    EO_alpha_power_F5_L{s, 2} = sum(EO_spect_F5_L{s,2})
-    
-    EO_alpha_power_F7_L{s, 1} = [subject '_avg_EO_spect_F7_L'];
-    EO_alpha_power_F7_L{s, 2} = sum(EO_spect_F7_L{s,2})
-    
-    EO_alpha_power_AF4_R{s, 1} = [subject '_avg_EO_spect_AF4_R'];
-    EO_alpha_power_AF4_R{s, 2} = sum(EO_spect_AF4_R{s,2})
-    
-    EO_alpha_power_F4_R{s, 1} = [subject '_avg_EO_spect_F4_R'];
-    EO_alpha_power_F4_R{s, 2} = sum(EO_spect_F4_R{s,2})
-    
-    EO_alpha_power_F6_R{s, 1} = [subject '_avg_EO_spect_F6_R'];
-    EO_alpha_power_F6_R{s, 2} = sum(EO_spect_F6_R{s,2})
-    
-    EO_alpha_power_F8_R{s, 1} = [subject '_avg_EO_spect_F8_R'];
-    EO_alpha_power_F8_R{s, 2} = sum(EO_spect_F8_R{s,2})
-    
-    
+ 
+    % DON'T I NEED AT LEAST THE STD TO DO SOME STATISTICS?
     % AVERAGE POWER SPECTRA FOR EACH SITE
     
     % CALCULATE ALPHA POWER, EITHER BY SUMMING ALL SPECTRAL POINTS IN THE
@@ -137,10 +105,10 @@ for s = 1:2 %:numsubjects
     % SAVE DATA
 %     EEG_EO = pop_saveset(EEG_EO, ...
 %          'filename',[subject '_EO_Spectopo.set'], ...
-%          'filepath', final);
+%          'filepath', tfadir);
 %      EEG_EC = pop_saveset(EEG_EC, ...
 %          'filename',[subject '_EC_Spectopo.set'], ...
-%          'filepath', final);
+%          'filepath', tfadir);
 %     
 end
 
