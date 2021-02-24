@@ -1,17 +1,13 @@
-% SET VARIABLE TO 1 TO SAVE INTERMEDIATE STEPS. SET TO 0 TO SAVE
-% ONLY THE NECESSARY FILES (RAW RS, EPOCHED EO AND EC, FINAL).
-save_everything = 1;
+%% SET UP FILES AND FOLDERS
+
+% MAKE SURE EEGLAB IS IN PATH
+addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0');
+% WORKING DIRECTORY
+cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
 % SET EEGLAB PREFERENCES
 pop_editoptions( 'option_storedisk', 1);
 pop_editoptions( 'option_single', 0);
-
-%% SET UP FILES AND FOLDERS
-
-% MAKE SURE EEGLAB IS IN PATH
-addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0')
-% WORKING DIRECTORY
-cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
 % PATH TO THE NECESSARY FOLDERS
 eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
@@ -31,14 +27,14 @@ subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
     'sub-028', 'sub-029', 'sub-030', 'sub-031', 'sub-032'};
 numsubjects = length(subject_list);
 
-%% CONVERSION INTO FREQUENCY DOMAIN
+%% FREQUENCY DECOMPOSITION
 
 % ELECTRODE CLUSTERS
 nchans_left = [9 11 13 15]; % LEFT = [AF3 F7 F5 F3]
 nchans_right = [10 12 14 16]; % RIGHT = [AF4 F8 F6 F4]
 
 
-for s = 1:numsubjects
+for s = 1 %:numsubjects
     
     subject = subject_list{s};
     
@@ -83,19 +79,20 @@ for s = 1:numsubjects
     alphaindex = find(freqs >= 8 & freqs <= 13); % FREQUENCY RANGE 8-13 Hz
     
     % MEAN ALPHA POWER (uV^2) LEFT ELECTRODE CLUSTER FOR EO AND EC
-    EO_alphapower_L(s,1) = 10^(mean(EO_spect_L(alphaindex))/10); 
-    EC_alphapower_L(s,1) = 10^(mean(EC_spect_L(alphaindex))/10); 
+    EO_alphapower_L(s,1) = mean(10.^(EO_spect_L(alphaindex)/10));
+    EC_alphapower_L(s,1) = mean(10.^(EC_spect_L(alphaindex)/10));
     
     % MEAN ALPHA POWER (uV^2) RIGHT ELECTRODE CLUSTER FOR EO AND EC
-    EO_alphapower_R(s,1) = 10^(mean(EO_spect_R(alphaindex))/10); 
-    EC_alphapower_R(s,1) = 10^(mean(EC_spect_R(alphaindex))/10); 
+    EO_alphapower_R(s,1) = mean(10.^(EO_spect_R(alphaindex)/10));
+    EC_alphapower_R(s,1) = mean(10.^(EC_spect_R(alphaindex)/10));
     
     % ALPHA ASYMMETRY SCORES EO AND EC
     EO_asymmetry(s,1) = log(EO_alphapower_R(s,1)) - log(EO_alphapower_L(s,1));
     EC_asymmetry(s,1) = log(EC_alphapower_R(s,1)) - log(EC_alphapower_L(s,1));
     
-    % IS THIS MEAN ALPHA POWER (dB)?
-    meanalpha = 10^(mean(EO_spect_R(alphaindex))/10); 
+    
+    % DIVIDING BY 10 (Hz) IN POWER CALCULATION SO THAT POWER IS
+    % IN (uV^2/Hz). REMOVE 10 TO HAVE uV^2 INSTEAD. BOTH SHOULD WORK.
     
     % DON'T I NEED AT LEAST THE STD TO DO SOME STATISTICS?
     % AVERAGE POWER SPECTRA FOR EACH SITE
@@ -125,6 +122,7 @@ save EC_AssymetryScores EC_asymmetry
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
 
 %------------------------------------------------------------
+% MEAN POWER OF ALL SUBJECTS NEXT?
 % https://sccn.ucsd.edu/pipermail/eeglablist/2012/004511.html
 % https://sccn.ucsd.edu/pipermail/eeglablist/2010/003550.html
 % https://sccn.ucsd.edu/pipermail/eeglablist/2014/008043.html
@@ -155,3 +153,7 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
 
 % output: spectra  = (nchans,nfreqs) power spectra (mean power over epochs), in dB
 % GOOGLE "eeg alpha asymmetry site:sccn.ucsd.edu/pipermail/eeglablist/"
+
+% DIFFERENT NUMBER OF TRIALS (EPOCHS) IN EO AND EC. HANDLE BY WEIGHTING?
+
+% TAKE ABSOLUTE POWER?
