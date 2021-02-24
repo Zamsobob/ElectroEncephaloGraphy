@@ -38,7 +38,7 @@ nchans_left = [9 11 13 15]; % LEFT = [AF3 F7 F5 F3]
 nchans_right = [10 12 14 16]; % RIGHT = [AF4 F8 F6 F4]
 
 
-for s = 1:5 %:numsubjects
+for s = 1 %:numsubjects
     
     subject = subject_list{s};
     
@@ -57,38 +57,38 @@ for s = 1:5 %:numsubjects
 
     
     % COMPUTE THE POWER SPECTAL DENSITY (PSD) OF THE EPOCHS AT LEFT ELECTRODES
-    [EO_spect_L, EO_freq_L] = spectopo(EO_eleclust_left, ...
+    [EO_spect_L, freqs] = spectopo(EO_eleclust_left, ...
         EEG_EO.pnts, EEG_EO.srate, ...
         'chanlocs', EEG_EO.chanlocs, ...
         'freqfac', 2, ...
         'plot', 'off'); 
-    [EC_spect_L, EC_freq_L] = spectopo(EC_eleclust_left, ...
+    [EC_spect_L, freqs] = spectopo(EC_eleclust_left, ...
         EEG_EC.pnts, EEG_EC.srate, ...
         'chanlocs', EEG_EC.chanlocs, ...
         'freqfac', 2, ...
         'plot', 'off');
 
     % COMPUTE THE POWER SPECTAL DENSITY (PSD) OF THE EPOCHS AT RIGHT ELECTRODES
-    [EO_spect_R, EO_freq_R] = spectopo(EO_eleclust_right, ...
+    [EO_spect_R, freqs] = spectopo(EO_eleclust_right, ...
         EEG_EO.pnts, EEG_EO.srate, ...
         'chanlocs', EEG_EO.chanlocs, ...
         'freqfac', 2, ...
         'plot', 'off');
-    [EC_spect_R, EC_freq_R] = spectopo(EC_eleclust_right, ...
+    [EC_spect_R, freqs] = spectopo(EC_eleclust_right, ...
         EEG_EC.pnts, EEG_EC.srate, ...
         'chanlocs', EEG_EC.chanlocs, ...
         'freqfac', 2, ...
         'plot', 'off');
     
-    alphaindex = find(EO_freq_R >= 8 & EO_freq_R <= 13); % FREQUENCY RANGE
+    alphaindex = find(freqs >= 8 & freqs <= 13); % FREQUENCY RANGE 8-13 Hz
     
-    % MEAN ALPHA POWER LEFT ELECTRODE CLUSTER FOR EO AND EC
-    EO_alphapower_L(s,1) = mean(EO_spect_L(alphaindex));
-    EC_alphapower_L(s,1) = mean(EC_spect_L(alphaindex));
+    % MEAN ALPHA POWER (uV^2) LEFT ELECTRODE CLUSTER FOR EO AND EC
+    EO_alphapower_L(s,1) = mean(mean(EO_spect_L(alphaindex)));
+    EC_alphapower_L(s,1) = mean(mean(EC_spect_L(alphaindex)));
     
-    % MEAN ALPHA POWER RIGHT ELECTRODE CLUSTER FOR EO AND EC
-    EO_alphapower_R(s,1) = mean(EO_spect_R(alphaindex));
-    EC_alphapower_R(s,1) = mean(EC_spect_R(alphaindex));
+    % MEAN ALPHA POWER (uV^2) RIGHT ELECTRODE CLUSTER FOR EO AND EC
+    EO_alphapower_R(s,1) = mean(mean(EO_spect_R(alphaindex)));
+    EC_alphapower_R(s,1) = mean(mean(EC_spect_R(alphaindex)));
     
     % ALPHA ASYMMETRY SCORES EO AND EC
     EO_asymmetry(s,1) = log(EO_alphapower_R(s,1)) - log(EO_alphapower_L(s,1));
@@ -115,6 +115,7 @@ for s = 1:5 %:numsubjects
 %     
 end
 
+% SAVE NECESSARY INFORMATION (E.G ASYMMETRY SCORES)
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
 
 %------------------------------------------------------------
@@ -123,6 +124,8 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
 % https://sccn.ucsd.edu/pipermail/eeglablist/2014/008043.html
 % https://sccn.ucsd.edu/~arno/eeglab/auto/spectopo.html
 % https://download.ni.com/evaluation/pxi/Understanding%20FFTs%20and%20Windowing.pdf
+% https://community.sw.siemens.com/s/article/what-is-a-power-spectral-density-psd
+% ERSP https://sccn.ucsd.edu/pipermail/eeglablist/2012/005254.html
 
 % After I have power right and power left:
 % FAA = mean(abs(log(POW_R)-log(POW_L))) 
@@ -143,4 +146,5 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
 
 % newtimef() for event-related.
 
+% output: spectra  = (nchans,nfreqs) power spectra (mean power over epochs), in dB
 % GOOGLE "eeg alpha asymmetry site:sccn.ucsd.edu/pipermail/eeglablist/"
