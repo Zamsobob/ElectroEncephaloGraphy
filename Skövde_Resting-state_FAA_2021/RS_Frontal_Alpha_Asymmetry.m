@@ -38,7 +38,7 @@ nchans_left = [9 11 13 15]; % LEFT = [AF3 F7 F5 F3]
 nchans_right = [10 12 14 16]; % RIGHT = [AF4 F8 F6 F4]
 
 
-for s = 1:2 %:numsubjects
+for s = 1:5 %:numsubjects
     
     subject = subject_list{s};
     
@@ -80,15 +80,19 @@ for s = 1:2 %:numsubjects
         'freqfac', 2, ...
         'plot', 'off');
     
-     
-    alphaindex = find(EO_freq_R >= 8 & EO_freq_R <= 13);
-    % TOTAL ALPHA POWER LEFT ELECTRODE CLUSTER FOR EO AND EC
-    % ROWS ARE SUBJECTS
-    EO_alphapower_L(s,1) = log(mean(EO_spect_L(alphaindex)));
-    EC_alphapower_L(s,1) = log(mean(EC_spect_L(alphaindex)));
-    % TOTAL ALPHA POWER RIGHT ELECTRODE CLUSTER FOR EO AND EC
-    EO_alphapower_R(s,1) = log(mean(EO_spect_R(alphaindex)));
-    EC_alphapower_R(s,1) = log(mean(EC_spect_R(alphaindex)));
+    alphaindex = find(EO_freq_R >= 8 & EO_freq_R <= 13); % FREQUENCY RANGE
+    
+    % MEAN ALPHA POWER LEFT ELECTRODE CLUSTER FOR EO AND EC
+    EO_alphapower_L(s,1) = mean(EO_spect_L(alphaindex));
+    EC_alphapower_L(s,1) = mean(EC_spect_L(alphaindex));
+    
+    % MEAN ALPHA POWER RIGHT ELECTRODE CLUSTER FOR EO AND EC
+    EO_alphapower_R(s,1) = mean(EO_spect_R(alphaindex));
+    EC_alphapower_R(s,1) = mean(EC_spect_R(alphaindex));
+    
+    % ALPHA ASYMMETRY SCORES EO AND EC
+    EO_asymmetry(s,1) = log(EO_alphapower_R(s,1)) - log(EO_alphapower_L(s,1));
+    EC_asymmetry(s,1) = log(EC_alphapower_R(s,1)) - log(EC_alphapower_L(s,1));
     
  
     % DON'T I NEED AT LEAST THE STD TO DO SOME STATISTICS?
@@ -101,7 +105,6 @@ for s = 1:2 %:numsubjects
     % LOG TRANSFORM ALPHA POWER AT ANY GIVEN SITE.
     % CALCULATE DIFFERENCE SCORE ln(power_left) - ln(power_right).
     
-    % FIX VARIABLES SO THAT A CELL ARRAY GETS UPDATED WITH ALL THE SUBJECTS
     % SAVE DATA
 %     EEG_EO = pop_saveset(EEG_EO, ...
 %          'filename',[subject '_EO_Spectopo.set'], ...
@@ -113,10 +116,6 @@ for s = 1:2 %:numsubjects
 end
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
-
-% HOW TO CLUSTER ELECTRODES? MEAN OF ALL 4 ELECTRODES?
-% right_cluster = squeeze(mean(na_data(nchans_right,:,:),1));
-% left_cluster = squeeze(mean(na_data(nchans_left,:,:),1));
 
 %------------------------------------------------------------
 % https://sccn.ucsd.edu/pipermail/eeglablist/2012/004511.html
