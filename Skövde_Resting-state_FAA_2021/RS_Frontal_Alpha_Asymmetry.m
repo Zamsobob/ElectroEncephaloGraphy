@@ -38,7 +38,7 @@ nchans_left = [9 11 13 15]; % LEFT = [AF3 F7 F5 F3]
 nchans_right = [10 12 14 16]; % RIGHT = [AF4 F8 F6 F4]
 
 
-for s = 1:5 %:numsubjects
+for s = 1:numsubjects
     
     subject = subject_list{s};
     
@@ -83,18 +83,20 @@ for s = 1:5 %:numsubjects
     alphaindex = find(freqs >= 8 & freqs <= 13); % FREQUENCY RANGE 8-13 Hz
     
     % MEAN ALPHA POWER (uV^2) LEFT ELECTRODE CLUSTER FOR EO AND EC
-    EO_alphapower_L(s,1) = mean(mean(EO_spect_L(alphaindex)));
-    EC_alphapower_L(s,1) = mean(mean(EC_spect_L(alphaindex)));
+    EO_alphapower_L(s,1) = 10^(mean(EO_spect_L(alphaindex))/10); 
+    EC_alphapower_L(s,1) = 10^(mean(EC_spect_L(alphaindex))/10); 
     
     % MEAN ALPHA POWER (uV^2) RIGHT ELECTRODE CLUSTER FOR EO AND EC
-    EO_alphapower_R(s,1) = mean(mean(EO_spect_R(alphaindex)));
-    EC_alphapower_R(s,1) = mean(mean(EC_spect_R(alphaindex)));
+    EO_alphapower_R(s,1) = 10^(mean(EO_spect_R(alphaindex))/10); 
+    EC_alphapower_R(s,1) = 10^(mean(EC_spect_R(alphaindex))/10); 
     
     % ALPHA ASYMMETRY SCORES EO AND EC
     EO_asymmetry(s,1) = log(EO_alphapower_R(s,1)) - log(EO_alphapower_L(s,1));
     EC_asymmetry(s,1) = log(EC_alphapower_R(s,1)) - log(EC_alphapower_L(s,1));
     
- 
+    % IS THIS MEAN ALPHA POWER (dB)?
+    meanalpha = 10^(mean(EO_spect_R(alphaindex))/10); 
+    
     % DON'T I NEED AT LEAST THE STD TO DO SOME STATISTICS?
     % AVERAGE POWER SPECTRA FOR EACH SITE
     
@@ -131,8 +133,9 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
 % https://community.sw.siemens.com/s/article/what-is-a-power-spectral-density-psd
 % ERSP https://sccn.ucsd.edu/pipermail/eeglablist/2012/005254.html
 
-% After I have power right and power left:
-% FAA = mean(abs(log(POW_R)-log(POW_L))) 
+% MAKOTO POWER: https://sccn.ucsd.edu/wiki/Makoto's_useful_EEGLAB_code#How_to_add_an_electrode_.2802.2F18.2F2021.29
+% NOT SURE I HAVE CALCULATED POWER CORRECTLY. OUTPUT IN dB
+
 
 % CONSIDER MEDIAL, LATERAL, AND MID FRONTAL CLUSTERS TOO. LATER.
 
