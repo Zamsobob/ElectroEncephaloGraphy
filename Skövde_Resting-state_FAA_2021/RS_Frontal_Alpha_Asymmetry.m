@@ -34,7 +34,7 @@ nchans_left = [9 11 13 15]; % LEFT = [AF3 F7 F5 F3]
 nchans_right = [10 12 14 16]; % RIGHT = [AF4 F8 F6 F4]
 
 
-for s = 1 %:numsubjects
+for s = 1:numsubjects
     
     subject = subject_list{s};
     
@@ -95,34 +95,35 @@ for s = 1 %:numsubjects
     % IN (uV^2/Hz). REMOVE 10 TO HAVE uV^2 INSTEAD. BOTH SHOULD WORK.
     
     % DON'T I NEED AT LEAST THE STD TO DO SOME STATISTICS?
-    % AVERAGE POWER SPECTRA FOR EACH SITE
-    
-    % CALCULATE ALPHA POWER, EITHER BY SUMMING ALL SPECTRAL POINTS IN THE
-    % FREQUENCY RANGE (TOTAL) OR SUMMING THE SPECTRAL POINTS AND DIVIDING
-    % BY THE RANGE IN HZ (DENSITY).
-    
-    % LOG TRANSFORM ALPHA POWER AT ANY GIVEN SITE.
-    % CALCULATE DIFFERENCE SCORE ln(power_left) - ln(power_right).
-    
-    % SAVE DATA
-%     EEG_EO = pop_saveset(EEG_EO, ...
-%          'filename',[subject '_EO_Spectopo.set'], ...
-%          'filepath', tfadir);
-%      EEG_EC = pop_saveset(EEG_EC, ...
-%          'filename',[subject '_EC_Spectopo.set'], ...
-%          'filepath', tfadir);
-%     
+      
 end
+
+% GROUP FAA SCORES
+EO_Group_FAA_Score = mean(EO_asymmetry(:,1)); % SUM? SOMETHING ELSE?
+EC_Group_FAA_Score = mean(EC_asymmetry(:,1)); % THIN IT'S MEAN
 
 % SAVE NECESSARY INFORMATION (E.G ASYMMETRY SCORES)
 cd D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Preprocessed\EEG_TFA
 save EO_AsymmetryScores EO_asymmetry
 save EC_AssymetryScores EC_asymmetry
+save EO_GroupFAAScores EO_Group_FAA_Score
+save EC_GroupFAAScores EC_Group_FAA_Score
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
 
+
+% clim = [-2 2];
+% figure; imagesc(times, freqs, EO_Group_FAA_Score, clim);
+% line([0 0], [0 50]) % line at 0 ms
+% set(gca,'Ydir','normal')
+% title('group')
+% xlabel('time (ms)')
+% ylabel('frequency')
+% colorbar;
+
+
 %------------------------------------------------------------
-% MEAN POWER OF ALL SUBJECTS NEXT?
+% USEFUL SOURCES:
 % https://sccn.ucsd.edu/pipermail/eeglablist/2012/004511.html
 % https://sccn.ucsd.edu/pipermail/eeglablist/2010/003550.html
 % https://sccn.ucsd.edu/pipermail/eeglablist/2014/008043.html
@@ -130,12 +131,12 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
 % https://download.ni.com/evaluation/pxi/Understanding%20FFTs%20and%20Windowing.pdf
 % https://community.sw.siemens.com/s/article/what-is-a-power-spectral-density-psd
 % ERSP https://sccn.ucsd.edu/pipermail/eeglablist/2012/005254.html
-
 % MAKOTO POWER: https://sccn.ucsd.edu/wiki/Makoto's_useful_EEGLAB_code#How_to_add_an_electrode_.2802.2F18.2F2021.29
-% NOT SURE I HAVE CALCULATED POWER CORRECTLY. OUTPUT IN dB
+
+% NOT SURE I HAVE CALCULATED POWER CORRECTLY. OUTPUT FROM SPECTOPO IN dB
 
 
-% CONSIDER MEDIAL, LATERAL, AND MID FRONTAL CLUSTERS TOO. LATER.
+% CONSIDER MEDIAL, LATERAL, AND MID FRONTAL ELECTRODES TOO?
 
 
 %    'wintype'  = ['hamming','blackmanharris'] Window type used on the power spectral 
@@ -149,11 +150,9 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
 %           Do I need this?
 
 
-% newtimef() for event-related.
+% newtimef() for event-related (ERSP)?
 
 % output: spectra  = (nchans,nfreqs) power spectra (mean power over epochs), in dB
 % GOOGLE "eeg alpha asymmetry site:sccn.ucsd.edu/pipermail/eeglablist/"
 
 % DIFFERENT NUMBER OF TRIALS (EPOCHS) IN EO AND EC. HANDLE BY WEIGHTING?
-
-% TAKE ABSOLUTE POWER?
