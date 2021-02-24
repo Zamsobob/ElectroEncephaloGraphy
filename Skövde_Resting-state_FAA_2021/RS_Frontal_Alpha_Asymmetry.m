@@ -38,7 +38,7 @@ nchans_left = [9 11 13 15]; % LEFT = [AF3 F7 F5 F3]
 nchans_right = [10 12 14 16]; % RIGHT = [AF4 F8 F6 F4]
 
 
-for s = 1 %:numsubjects
+for s = 1:5 %:numsubjects
     
     subject = subject_list{s};
     
@@ -116,6 +116,10 @@ for s = 1 %:numsubjects
 end
 
 % SAVE NECESSARY INFORMATION (E.G ASYMMETRY SCORES)
+cd D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Preprocessed\EEG_TFA
+save EO_AsymmetryScores EO_asymmetry
+save EC_AssymetryScores EC_asymmetry
+
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
 
 %------------------------------------------------------------
