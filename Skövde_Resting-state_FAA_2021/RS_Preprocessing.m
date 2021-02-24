@@ -61,7 +61,7 @@ final = [ eegfolder 'EEG_Preprocessed'];
 %% LOADING RAW FAA DATA AND RELEVANT FILES
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 2 %:numsubjects
+for s = 1:numsubjects
     
     subject = subject_list{s};
     
@@ -504,68 +504,10 @@ for s = 2 %:numsubjects
      
 end
 
-% SAVE INTERPOLATED CHANNELS AS .MAT
+% SAVE INTERPOLATED CHANNELS AND NUMBER OF EPOCHS AS .MAT
 save InterpolatedChannelsEO.mat interchans_EO
 save InterpolatedChannelsEC.mat interchans_EC
 save NumberOfEpochsEO.mat numepochs_EO
 save NumberOfEpochsEC.mat numepochs_EC
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
-
-%% OTHER THINGS TO CONSIDER
-    
-    % TRIM DATASET (BETWEEN REREFERENCE AND RESAMPLE?). TURKU
-    % EEG  = pop_eegtrim(EEG, 0, 3000 , 'post',  3000, 'pre',  0);
-    
-    % CHANGE ORDER OF CERTAIN FUNCTIONS?
-    
-    % LOW-PASS FILTER AT 40 HZ INSTEAD OF NOTCH? OR BOTH?
-    
-    % USE CLEANLINE OR CLEANLINENOISE. DOES NOT WORK WELL ATM.
-   
-    % LORETA? SINGLE EQUIVALENT CURRENT DIPOLES?
-    
-    % WHAT ABOUT ALL THE BOUNDARY EVENTS CREATED WHEN EXTRACTING RS DATA?
-    
-    % CREATE STUDY IN EEGLAB?
-    
-    % CONSIDER PREP PIPELINE (2015) AND ROBUST PIPELINE (2019)
-    
-    % CREATE SUBJECT FOLDERS FOR PREPROCESSED DATA? Preprocess folder?
-    
-    % CODE FOR SPLITTING INTO RS/SD UP TO DATE?
-    
-    % RUN HIGH-PASS WITH CLEAN_RAW, THEN NOTCH, THEN RUN THE REST OF CLEAN?
-    
-    % Add "save_everything" for possibility to skip intermediate steps.
-    
-    % DOWNSAMPLE AFTER ICA? SEE SMITH ET AL
-    % CANT RESAMPLE AFTER EPOCHING SO CHANGED IT BACK. WHY DID THEY DO IT?
-    
-    % 1-50 HZ BANDPASS? WHY? SMTIH ET AL
-    
-    % WHEN TO ADD EOG COORDINATES? AFTER ICA AND BEFORE INTERP?
-    
-    % trimOutlier https://github.com/sccn/trimOutlier (UNEPOCHED DATA)
-    
-    % PROJECT ICA BACK TO 0.1 HZ HIGH-PASS DATA? MAYBE NOT, MAKOTO
-    
-    % REJECT EPOCHS AGAIN AFTER -500 +500 UV? WITH SD? 
-    % Improbability test with 6SD for single channels and 2SD for all channels
-    % EEG = pop_jointprob(EEG,1,[1:21] ,6,2,0,0,0,[],0);
-    % EEG = pop_rejepoch(EEG,find(EEG.reject.rejglobal),1)
-    % EEG = eeg_rejsuperpose( EEG, 1, 1, 1, 1, 1, 1, 1, 1);
-    
-    % AM I ADDING Cz CORRECTLY? APPEND?
-    
-    % SPEED UP ICA BY DOWNSAMPLING TO 100 OR USE HIGH-PASS FILTER BEFORE?
-    % SEE MAKOTO
-    
-    % "INCLUDE EOG CHANNELS IN ICA UNLESS THEY ARE BIPOLAR-REFERENCED TO
-    % EACH OTHER"
-    
-    % MY EPOCHS ARE NOT 2.048 AFTER EPOCHING. PROBLEM?
-    
-    % SHOULD I CHANGE SAMPLING RATE TO 250 TO GET 2^N DATA POINTS IN THE
-    % EPOCHS? I BELIEVE I HAVE 524 NOW, CHANGING TO 250 HZ GIVES 512. SMITH
-    % SEE FRAMES PER EPOCH IN GUI OR EEG.pnts
