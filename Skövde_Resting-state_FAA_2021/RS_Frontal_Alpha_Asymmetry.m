@@ -41,13 +41,13 @@ EO_asymmetry = zeros(numelecpairs, numsubjects); % EO FAA SCORES
 EC_asymmetry = zeros(numelecpairs, numsubjects); % EC FAA SCORES
 
 % INITIALIZING VARIABLES FOR ANALYSIS OF LEFT AND RIGHT ELECTRODE CLUSTERS
-EO_alphapower_L = zeros(numsubjects, 1); % EO ALPHA POWER LEFT CLUSTER
-EC_alphapower_L = zeros(numsubjects, 1); % EC ALPHA POWER LEFT CLUSTER
-EO_alphapower_R = zeros(numsubjects, 1); % EO ALPHA POWER RIGHT CLUSTER
-EC_alphapower_R = zeros(numsubjects, 1); % EO ALPHA POWER RIGHT CLUSTER
+EO_alphapower_L = zeros(1, numsubjects); % EO ALPHA POWER LEFT CLUSTER
+EC_alphapower_L = zeros(1, numsubjects); % EC ALPHA POWER LEFT CLUSTER
+EO_alphapower_R = zeros(1, numsubjects); % EO ALPHA POWER RIGHT CLUSTER
+EC_alphapower_R = zeros(1, numsubjects); % EO ALPHA POWER RIGHT CLUSTER
 
-EO_asymmetry_clust = zeros(numsubjects, 1); % EO FAA SCORES CLUSTERS
-EC_asymmetry_clust = zeros(numsubjects, 1); % EC FAA SCORES CLUSTERS
+EO_asymmetry_clust = zeros(1, numsubjects); % EO FAA SCORES CLUSTERS
+EC_asymmetry_clust = zeros(1, numsubjects); % EC FAA SCORES CLUSTERS
 
 % ELECTRODE CLUSTERS
 nchans_left = [9 11 13 15]; % LEFT = [AF3 F7 F5 F3]
@@ -137,8 +137,8 @@ for s = 1:numsubjects
     EC_alphapower_R(1,s) = mean(10.^(EC_spect_R(alphaindex)/10));
     
     % ALPHA ASYMMETRY SCORES EO AND EC
-    EO_asymmetry_clust(1,s) = log(EO_alphapower_R(s,1)) - log(EO_alphapower_L(s,1));
-    EC_asymmetry_clust(1,s) = log(EC_alphapower_R(s,1)) - log(EC_alphapower_L(s,1));
+    EO_asymmetry_clust(1,s) = log(EO_alphapower_R(1,s)) - log(EO_alphapower_L(1,s));
+    EC_asymmetry_clust(1,s) = log(EC_alphapower_R(1,s)) - log(EC_alphapower_L(1,s));
     
 end
 
@@ -156,3 +156,6 @@ xlswrite('FAAscores', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
 xlswrite('FAAscores', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
+
+% EYES OPEN AND EYES CLOSED. COMBINE THEM? MIGHT NEED TO TEST FOR
+% STATISTICAL DIFFERENCE BETWEEN THE CONDITIONS WITH T-TEST?
