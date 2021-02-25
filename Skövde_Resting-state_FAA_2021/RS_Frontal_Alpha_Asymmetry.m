@@ -33,6 +33,14 @@ numsubjects = length(subject_list);
 nchans_left = [9 11 13 15]; % LEFT = [AF3 F7 F5 F3]
 nchans_right = [10 12 14 16]; % RIGHT = [AF4 F8 F6 F4]
 
+% INITIALIZING VARIABLES
+EO_alphapower_L = zeros(numsubjects, 1);
+EC_alphapower_L = zeros(numsubjects, 1); 
+EO_alphapower_R = zeros(numsubjects, 1);
+EC_alphapower_R = zeros(numsubjects, 1);
+
+EO_asymmetry = zeros(numsubjects, 1);
+EC_asymmetry = zeros(numsubjects, 1);
 
 for s = 1:numsubjects
     
@@ -78,11 +86,11 @@ for s = 1:numsubjects
     
     alphaindex = find(freqs >= 8 & freqs <= 13); % FREQUENCY RANGE 8-13 Hz
     
-    % MEAN ALPHA POWER (uV^2) LEFT ELECTRODE CLUSTER FOR EO AND EC
+    % ALPHA POWER (uV^2/Hz) LEFT ELECTRODE CLUSTER FOR EO AND EC
     EO_alphapower_L(s,1) = mean(10.^(EO_spect_L(alphaindex)/10));
     EC_alphapower_L(s,1) = mean(10.^(EC_spect_L(alphaindex)/10));
     
-    % MEAN ALPHA POWER (uV^2) RIGHT ELECTRODE CLUSTER FOR EO AND EC
+    % ALPHA POWER (uV^2/Hz) RIGHT ELECTRODE CLUSTER FOR EO AND EC
     EO_alphapower_R(s,1) = mean(10.^(EO_spect_R(alphaindex)/10));
     EC_alphapower_R(s,1) = mean(10.^(EC_spect_R(alphaindex)/10));
     
@@ -100,7 +108,7 @@ end
 
 % GROUP FAA SCORES
 EO_Group_FAA_Score = mean(EO_asymmetry(:,1)); % SUM? SOMETHING ELSE?
-EC_Group_FAA_Score = mean(EC_asymmetry(:,1)); % THIN IT'S MEAN
+EC_Group_FAA_Score = mean(EC_asymmetry(:,1)); % THINK IT'S MEAN
 
 % SAVE NECESSARY INFORMATION (E.G ASYMMETRY SCORES)
 cd D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Preprocessed\EEG_TFA
@@ -120,39 +128,3 @@ fprintf('\n\n\n**** FINISHED ****\n\n\n');
 % xlabel('time (ms)')
 % ylabel('frequency')
 % colorbar;
-
-
-%------------------------------------------------------------
-% USEFUL SOURCES:
-% https://sccn.ucsd.edu/pipermail/eeglablist/2012/004511.html
-% https://sccn.ucsd.edu/pipermail/eeglablist/2010/003550.html
-% https://sccn.ucsd.edu/pipermail/eeglablist/2014/008043.html
-% https://sccn.ucsd.edu/~arno/eeglab/auto/spectopo.html
-% https://download.ni.com/evaluation/pxi/Understanding%20FFTs%20and%20Windowing.pdf
-% https://community.sw.siemens.com/s/article/what-is-a-power-spectral-density-psd
-% ERSP https://sccn.ucsd.edu/pipermail/eeglablist/2012/005254.html
-% MAKOTO POWER: https://sccn.ucsd.edu/wiki/Makoto's_useful_EEGLAB_code#How_to_add_an_electrode_.2802.2F18.2F2021.29
-
-% NOT SURE I HAVE CALCULATED POWER CORRECTLY. OUTPUT FROM SPECTOPO IN dB
-
-
-% CONSIDER MEDIAL, LATERAL, AND MID FRONTAL ELECTRODES TOO?
-
-
-%    'wintype'  = ['hamming','blackmanharris'] Window type used on the power spectral 
-%                  density estimation. The Blackman-Harris windows offers better attenuation
-%                  than Hamming windows, but lower spectral resolution. {default: 'hamming'}
-
-%    'overlap'  = [integer] window overlap in data points {default: 0}
-% DO I NEED OVERLAP?
-
-%    'nfft'     = [integer] Data points to zero-pad data windows to (overwrites 'freqfac')
-%           Do I need this?
-
-
-% newtimef() for event-related (ERSP)?
-
-% output: spectra  = (nchans,nfreqs) power spectra (mean power over epochs), in dB
-% GOOGLE "eeg alpha asymmetry site:sccn.ucsd.edu/pipermail/eeglablist/"
-
-% DIFFERENT NUMBER OF TRIALS (EPOCHS) IN EO AND EC. HANDLE BY WEIGHTING?
