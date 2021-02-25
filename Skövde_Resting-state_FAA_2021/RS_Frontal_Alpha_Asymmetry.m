@@ -81,9 +81,13 @@ for s = 1:numsubjects
         'freqfac', 2, ...
         'plot', 'off');
     
+    % OUTPUT IS IN dB -> 10*log10(uV^2/Hz)
+    
+    % CONVERT TO ALPHA POWER (uV^2/Hz) AND AVERAGE ACROSS FREQUENCIES
+    
     alphaindex = find(freqs >= 8 & freqs <= 13); % FREQUENCY RANGE 8-13 Hz
     
-    % CREATE CHANNEL X SUBEJCT MATRIX WITH MEAN ALPHA POWERS (uV^2/Hz)
+    % CREATE CHANNEL X SUBEJCT MATRIX OF MEAN ALPHA POWER
     for electrode = 1:numelectrodes  
         EO_alphapower(electrode, s) = mean(10.^(EO_spect(electrode, alphaindex)/10));
         EC_alphapower(electrode, s) = mean(10.^(EC_spect(electrode, alphaindex)/10));
@@ -128,13 +132,18 @@ for s = 1:numsubjects
         'freqfac', 2, ...
         'plot', 'off');
     
-    % ALPHA POWER (uV^2/Hz) LEFT ELECTRODE CLUSTER FOR EO AND EC
+    % OUTPUT IS IN dB -> 10*log10(uV^2/Hz)
+    
+    % CONVERT TO ALPHA POWER (uV^2/Hz) AND AVERAGE ACROSS FREQUENCIES
+    
+    % ALPHA POWER LEFT ELECTRODE CLUSTER FOR EO AND EC
     EO_alphapower_L(1,s) = mean(10.^(EO_spect_L(alphaindex)/10));
     EC_alphapower_L(1,s) = mean(10.^(EC_spect_L(alphaindex)/10));
     
-    % ALPHA POWER (uV^2/Hz) RIGHT ELECTRODE CLUSTER FOR EO AND EC
+    % ALPHA POWER RIGHT ELECTRODE CLUSTER FOR EO AND EC
     EO_alphapower_R(1,s) = mean(10.^(EO_spect_R(alphaindex)/10));
     EC_alphapower_R(1,s) = mean(10.^(EC_spect_R(alphaindex)/10));
+    
     
     % ALPHA ASYMMETRY SCORES EO AND EC
     EO_asymmetry_clust(1,s) = log(EO_alphapower_R(1,s)) - log(EO_alphapower_L(1,s));
@@ -156,6 +165,38 @@ xlswrite('FAAscores', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
 xlswrite('FAAscores', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
+
+% PLOT POWER SPECTRUM. LOOP CAN BE USED TO MAKE SUBPLOTS
+% CREATE BETTER PLOTS WITH SPECTOPO THOUGH LATER
+figure
+subplot(221)
+bar(freqs, abs(EO_spect_L))
+set(gca,'xlim',[-5 105])
+xlabel('Frequency (Hz)')
+ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
+title('Power Spectra for Eyes Open Left Cluster')
+
+subplot(222)
+bar(freqs, abs(EO_spect_R))
+set(gca,'xlim',[-5 105])
+xlabel('Frequency (Hz)')
+ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
+title('Power Spectra for Eyes Open Right Cluster')
+
+subplot(223)
+bar(freqs, abs(EC_spect_L))
+set(gca,'xlim',[-5 105])
+xlabel('Frequency (Hz)')
+ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
+title('Power Spectra for Eyes Closed Left Cluster')
+
+subplot(224)
+bar(freqs, abs(EC_spect_R))
+set(gca,'xlim',[-5 105])
+xlabel('Frequency (Hz)')
+ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
+title('Power Spectra for Eyes Closed Right Cluster')
+
 
 % EYES OPEN AND EYES CLOSED. COMBINE THEM? MIGHT NEED TO TEST FOR
 % STATISTICAL DIFFERENCE BETWEEN THE CONDITIONS WITH T-TEST?
