@@ -1,3 +1,7 @@
+%% All electrodes
+% Standard deviations?
+% Loop for EO and EC?
+
 %% SET UP FILES AND FOLDERS
 
 % MAKE SURE EEGLAB IS IN PATH
@@ -27,21 +31,31 @@ subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
     'sub-028', 'sub-029', 'sub-030', 'sub-031', 'sub-032'};
 numsubjects = length(subject_list);
 
-%% FREQUENCY DECOMPOSITION
+% INITIALIZE VARIABLES FOR ANALYSING ALL FRONTAL ELECTRODES
+numelectrodes = 27; % NUMBER OF ELECTRODES IN DATASET
+numelecpairs = 4; % NUMBER OF ELECTRODE PAIRS TO COMPARE (E.G., F3/F4)
+nchans = 9:2:16; % VECTOR OF ALL ELECTRODES (LEFT & RIGHT) TO COMPARE
+EO_alphapower = zeros(numelectrodes, numsubjects); % EO ALPHA POWER
+EC_alphapower = zeros(numelectrodes, numsubjects); % EC ALPHA POWER
+EO_asymmetry = zeros(numelecpairs, numsubjects); % EO FAA SCORES
+EC_asymmetry = zeros(numelecpairs, numsubjects); % EC FAA SCORES
+
+% INITIALIZING VARIABLES FOR ANALYSIS OF LEFT AND RIGHT ELECTRODE CLUSTERS
+EO_alphapower_L = zeros(numsubjects, 1); % EO ALPHA POWER LEFT CLUSTER
+EC_alphapower_L = zeros(numsubjects, 1); % EC ALPHA POWER LEFT CLUSTER
+EO_alphapower_R = zeros(numsubjects, 1); % EO ALPHA POWER RIGHT CLUSTER
+EC_alphapower_R = zeros(numsubjects, 1); % EO ALPHA POWER RIGHT CLUSTER
+
+EO_asymmetry_clust = zeros(numsubjects, 1); % EO FAA SCORES CLUSTERS
+EC_asymmetry_clust = zeros(numsubjects, 1); % EC FAA SCORES CLUSTERS
 
 % ELECTRODE CLUSTERS
 nchans_left = [9 11 13 15]; % LEFT = [AF3 F7 F5 F3]
 nchans_right = [10 12 14 16]; % RIGHT = [AF4 F8 F6 F4]
 
-% INITIALIZING VARIABLES
-EO_alphapower_L = zeros(numsubjects, 1);
-EC_alphapower_L = zeros(numsubjects, 1); 
-EO_alphapower_R = zeros(numsubjects, 1);
-EC_alphapower_R = zeros(numsubjects, 1);
+%% FREQUENCY DECOMPOSITION
 
-EO_asymmetry = zeros(numsubjects, 1);
-EC_asymmetry = zeros(numsubjects, 1);
-
+% LOOP THROUGH ALL SUBJECTS
 for s = 1:numsubjects
     
     subject = subject_list{s};
@@ -52,15 +66,45 @@ for s = 1:numsubjects
     % LOAD PREPROCESSED EO AND EC DATASETS
     EEG_EO = pop_loadset('filename',[subject '_EO_Preprocessed.set'],'filepath', final);
     EEG_EC = pop_loadset('filename',[subject '_EC_Preprocessed.set'],'filepath', final);
+   
+    %% ANALYSIS OF ALL CHANNELS
+    
+    % COMPUTE POWER SPECTAL DENSITY (PSD) OF THE EPOCHS FOR ALL CHANNELS
+    [EO_spect, freqs] = spectopo(EEG_EO.data, ...
+        EEG_EO.pnts, EEG_EO.srate, ...
+        'chanlocs', EEG_EO.chanlocs, ...
+        'freqfac', 2, ...
+        'plot', 'off'); 
+    [EC_spect, freqs] = spectopo(EEG_EC.data, ...
+        EEG_EC.pnts, EEG_EC.srate, ...
+        'chanlocs', EEG_EC.chanlocs, ...
+        'freqfac', 2, ...
+        'plot', 'off');
+    
+    alphaindex = find(freqs >= 8 & freqs <= 13); % FREQUENCY RANGE 8-13 Hz
+    
+    % CREATE CHANNEL X SUBEJCT MATRIX WITH MEAN ALPHA POWERS (uV^2/Hz)
+    for electrode = 1:numelectrodes  
+        EO_alphapower(electrode, s) = mean(10.^(EO_spect(electrode, alphaindex)/10));
+        EC_alphapower(electrode, s) = mean(10.^(EC_spect(electrode, alphaindex)/10));
+    end
+    
+    % CREATE MATRIX OF ASYMMETRY SCORES. ROWS ARE ELECTRODE PAIRS AF3-AF4,
+    % F3-F4, F5-F6, AND F7-F8. COLUMNS ARE SUBJECTS
+    for i = 1:numelecpairs
+        EO_asymmetry(i, s) = log(EO_alphapower(nchans(i),s)) - log(EO_alphapower(nchans(i)+1,s));
+        EC_asymmetry(i, s) = log(EC_alphapower(nchans(i),s)) - log(EC_alphapower(nchans(i)+1,s));
+    end
+ 
+    %% ANALYSIS OF LEFT AND RIGHT ELECTRODE CLUSTERS
     
     % CREATE LEFT AND RIGHT ELECTRODE CLUSTERS
     EO_eleclust_left = mean(EEG_EO.data(nchans_left,:,:),1);
     EO_eleclust_right = mean(EEG_EO.data(nchans_right,:,:),1); 
     EC_eleclust_left = mean(EEG_EC.data(nchans_left,:,:),1);
     EC_eleclust_right = mean(EEG_EC.data(nchans_right,:,:),1);
-
     
-    % COMPUTE THE POWER SPECTAL DENSITY (PSD) OF THE EPOCHS AT LEFT ELECTRODES
+    % COMPUTE PSD OF THE EPOCHS AT LEFT ELECTRODE CLUSTER
     [EO_spect_L, freqs] = spectopo(EO_eleclust_left, ...
         EEG_EO.pnts, EEG_EO.srate, ...
         'chanlocs', EEG_EO.chanlocs, ...
@@ -72,7 +116,7 @@ for s = 1:numsubjects
         'freqfac', 2, ...
         'plot', 'off');
 
-    % COMPUTE THE POWER SPECTAL DENSITY (PSD) OF THE EPOCHS AT RIGHT ELECTRODES
+    % COMPUTE PSD OF THE EPOCHS AT RIGHT ELECTRODE CLUSTER
     [EO_spect_R, freqs] = spectopo(EO_eleclust_right, ...
         EEG_EO.pnts, EEG_EO.srate, ...
         'chanlocs', EEG_EO.chanlocs, ...
@@ -84,47 +128,31 @@ for s = 1:numsubjects
         'freqfac', 2, ...
         'plot', 'off');
     
-    alphaindex = find(freqs >= 8 & freqs <= 13); % FREQUENCY RANGE 8-13 Hz
-    
     % ALPHA POWER (uV^2/Hz) LEFT ELECTRODE CLUSTER FOR EO AND EC
-    EO_alphapower_L(s,1) = mean(10.^(EO_spect_L(alphaindex)/10));
-    EC_alphapower_L(s,1) = mean(10.^(EC_spect_L(alphaindex)/10));
+    EO_alphapower_L(1,s) = mean(10.^(EO_spect_L(alphaindex)/10));
+    EC_alphapower_L(1,s) = mean(10.^(EC_spect_L(alphaindex)/10));
     
     % ALPHA POWER (uV^2/Hz) RIGHT ELECTRODE CLUSTER FOR EO AND EC
-    EO_alphapower_R(s,1) = mean(10.^(EO_spect_R(alphaindex)/10));
-    EC_alphapower_R(s,1) = mean(10.^(EC_spect_R(alphaindex)/10));
+    EO_alphapower_R(1,s) = mean(10.^(EO_spect_R(alphaindex)/10));
+    EC_alphapower_R(1,s) = mean(10.^(EC_spect_R(alphaindex)/10));
     
     % ALPHA ASYMMETRY SCORES EO AND EC
-    EO_asymmetry(s,1) = log(EO_alphapower_R(s,1)) - log(EO_alphapower_L(s,1));
-    EC_asymmetry(s,1) = log(EC_alphapower_R(s,1)) - log(EC_alphapower_L(s,1));
+    EO_asymmetry_clust(1,s) = log(EO_alphapower_R(s,1)) - log(EO_alphapower_L(s,1));
+    EC_asymmetry_clust(1,s) = log(EC_alphapower_R(s,1)) - log(EC_alphapower_L(s,1));
     
-    
-    % DIVIDING BY 10 (Hz) IN POWER CALCULATION SO THAT POWER IS
-    % IN (uV^2/Hz). REMOVE 10 TO HAVE uV^2 INSTEAD. BOTH SHOULD WORK.
-    
-    % DON'T I NEED AT LEAST THE STD TO DO SOME STATISTICS?
-      
 end
 
-% GROUP FAA SCORES
-EO_Group_FAA_Score = mean(EO_asymmetry(:,1)); % SUM? SOMETHING ELSE?
-EC_Group_FAA_Score = mean(EC_asymmetry(:,1)); % THINK IT'S MEAN
+% EXPORT FILES TO EXCEL FOR STATISTICAL ANALYSIS
+xlswrite('FAAscores', EO_alphapower, 'EO Alpha Power');
+xlswrite('FAAscores', EC_alphapower, 'EC Alpha Power');
+xlswrite('FAAscores', EO_asymmetry, 'EO Asymmetry Scores');
+xlswrite('FAAscores', EC_asymmetry, 'EC Asymmetry Scores');
 
-% SAVE NECESSARY INFORMATION (E.G ASYMMETRY SCORES)
-cd D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Preprocessed\EEG_TFA
-save EO_AsymmetryScores EO_asymmetry
-save EC_AssymetryScores EC_asymmetry
-save EO_GroupFAAScores EO_Group_FAA_Score
-save EC_GroupFAAScores EC_Group_FAA_Score
+xlswrite('FAAscores', EO_alphapower_L, 'EO Alpha Power Left Cluster');
+xlswrite('FAAscores', EO_alphapower_R, 'EO Alpha Power right Cluster');
+xlswrite('FAAscores', EC_alphapower_L, 'EC Alpha Power Left Cluster');
+xlswrite('FAAscores', EC_alphapower_R, 'EC Alpha Power right Cluster');
+xlswrite('FAAscores', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
+xlswrite('FAAscores', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
-
-
-% clim = [-2 2];
-% figure; imagesc(times, freqs, EO_Group_FAA_Score, clim);
-% line([0 0], [0 50]) % line at 0 ms
-% set(gca,'Ydir','normal')
-% title('group')
-% xlabel('time (ms)')
-% ylabel('frequency')
-% colorbar;
