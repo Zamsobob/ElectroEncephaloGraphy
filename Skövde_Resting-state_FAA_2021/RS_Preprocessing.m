@@ -6,10 +6,6 @@ clc;
 % ONLY THE NECESSARY FILES (RAW RS, EPOCHED EO AND EC, FINAL).
 save_everything = 1;
 
-% SET EEGLAB PREFERENCES
-pop_editoptions( 'option_storedisk', 1);
-pop_editoptions( 'option_single', 0);
-
 %% SET UP FILES AND FOLDERS
 
 % MAKE SURE EEGLAB IS IN PATH
@@ -17,6 +13,9 @@ addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0')
 % WORKING DIRECTORY
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
+% SET EEGLAB PREFERENCES
+pop_editoptions( 'option_storedisk', 1);
+pop_editoptions( 'option_single', 0);
 
 % DEFINE THE SET OF SUBJECTS THAT WERE ETHICALLY APPROVED
 subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
@@ -25,7 +24,7 @@ subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
     'sub-028', 'sub-029', 'sub-030', 'sub-031', 'sub-032'};
 numsubjects = length(subject_list);
 
-% PATH TO THE EEG and RAW FOLDERS
+% PATH TO THE EEG AND RAW FOLDERS
 eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
 rawfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_RAW\';
 
@@ -170,7 +169,7 @@ for s = 1:numsubjects
     oldchans = {EEG.chanlocs.labels};
     origEEG_EO = EEG_EO;
     
-    % USE CLEAN_RAW TO REMOVE BAD CHANNELS
+    % USE CLEAN_RAWDATA TO REMOVE BAD CHANNELS
     EEG_EO = pop_clean_rawdata(EEG_EO, 'FlatlineCriterion', 5, ...
         'ChannelCriterion', 0.7, ...
         'LineNoiseCriterion', 4, ...
@@ -204,7 +203,7 @@ for s = 1:numsubjects
     end
     
     % HIGH-PASS FILTER AT 1 HZ AND PERFORM ARTIFACT SUBSPACE RECONSTRUCTION
-    %(ASR) WITH CLEAN_RAW
+    %(ASR) WITH CLEAN_RAWDATA
     EEG_EO = pop_clean_rawdata(EEG_EO, 'FlatlineCriterion', 'off', ...
         'ChannelCriterion', 'off',  ...
         'LineNoiseCriterion', 'off', ...
@@ -212,7 +211,7 @@ for s = 1:numsubjects
         'BurstCriterion', 20, ...
         'WindowCriterion', 0.25, ...
         'availableRAM_GB', 8, ...
-        'BurstRejection', 'on', ...
+        'BurstRejection', 'off', ...
         'Distance', 'Euclidian', ...
         'WindowCriterionTolerances', [-Inf 7] );
     EEG_EO.setname = [subject '_EO_Clean']; % NAME FOR DATASET MENU
@@ -287,7 +286,7 @@ for s = 1:numsubjects
     oldchans = {EEG.chanlocs.labels};
     origEEG_EC = EEG_EC;
     
-    % USE CLEAN_RAW TO REMOVE BAD CHANNELS
+    % USE CLEAN_RAWDATA TO REMOVE BAD CHANNELS
     EEG_EC = pop_clean_rawdata(EEG_EC, 'FlatlineCriterion', 5, ...
         'ChannelCriterion', 0.7, ...
         'LineNoiseCriterion', 4, ...
@@ -321,7 +320,7 @@ for s = 1:numsubjects
     end
     
     % HIGH-PASS FILTER AT 1 HZ AND PERFORM ARTIFACT SUBSPACE RECONSTRUCTION
-    %(ASR) WITH CLEAN_RAW
+    %(ASR) WITH CLEAN_RAWDATA
     EEG_EC = pop_clean_rawdata(EEG_EC, 'FlatlineCriterion', 'off', ...
         'ChannelCriterion', 'off',  ...
         'LineNoiseCriterion', 'off', ...
@@ -329,7 +328,7 @@ for s = 1:numsubjects
         'BurstCriterion', 20, ...
         'WindowCriterion', 0.25, ...
         'availableRAM_GB', 8, ...
-        'BurstRejection', 'on', ...
+        'BurstRejection', 'off', ...
         'Distance', 'Euclidian', ...
         'WindowCriterionTolerances', [-Inf 7] );
     EEG_EC.setname = [subject '_EC_Clean']; % NAME FOR DATASET MENU
@@ -380,22 +379,26 @@ for s = 1:numsubjects
     EEG_EO = pop_loadset('filename',[subject '_EO_Clean_Epoch.set'],'filepath', eodir);
     EEG_EC = pop_loadset('filename',[subject '_EC_Clean_Epoch.set'],'filepath', ecdir);
     
-    % MARK BAD EPOCHS (-200 TO 200 uV THRESHOLD), CHANNEL 1-4 ARE EOG,
-    % HENCE THEY ARE EXCLUDED HERE.
+    % MARK BAD EPOCHS (-500 TO 500 uV THRESHOLD). ONLY EEG CHANNELS
      EEG_EO = pop_eegthresh(EEG_EO,1, ...
          [5:length(EEG_EO.chanlocs)], ...
-         -200, 200, ...
+         -500, 500, ...
          -1.024, 1.024, ...
          0, 0);
      EEG_EC = pop_eegthresh(EEG_EC,1, ...
          [5:length(EEG_EC.chanlocs)], ...
-         -200,200, ...
+         -500,500, ...
          -1.024, 1.024, ...
          0, 0);
      
      % REJECT BAD EPOCHS FOR EO AND EC DATA
      EEG_EO = pop_rejepoch(EEG_EO, EEG_EO.reject.rejthresh,0);
      EEG_EC = pop_rejepoch(EEG_EC, EEG_EC.reject.rejthresh,0);
+     
+     % APPLY IMPROBABILITY TEST WITH 6SD FOR SINGLE CHANNELS AND 2SD FOR
+     % ALL CHANNELS. REJECT SELECTED EPOCHS AGAIN. MAKOTO RECOMMENDATION
+     EEG_EO = pop_jointprob(EEG_EO,1,[5:length(EEG_EO.chanlocs)] ,6,2,0,1,0,[],0);
+     EEG_EC = pop_jointprob(EEG_EC,1,[5:length(EEG_EC.chanlocs)] ,6,2,0,1,0,[],0);
      EEG_EO.setname = [subject '_EO_epochrej']; % NAME FOR DATASET MENU
      EEG_EC.setname = [subject '_EC_epochrej']; % NAME FOR DATASET MENU
      
@@ -422,9 +425,9 @@ for s = 1:numsubjects
       
      % SAVE DATA WITH ICA WEIGHTS
      if (save_everything)
-         EEG_EO = pop_saveset(EEG_EO, 'filename',[ subject '_EO_ICA.set'], ...
+         EEG_EO = pop_saveset(EEG_EO, 'filename',[subject '_EO_ICA.set'], ...
              'filepath', eodir);
-         EEG_EC = pop_saveset(EEG_EC, 'filename',[ subject '_EC_ICA.set'], ...
+         EEG_EC = pop_saveset(EEG_EC, 'filename',[subject '_EC_ICA.set'], ...
              'filepath', ecdir);
      end
  
@@ -504,10 +507,68 @@ for s = 1:numsubjects
      
 end
 
-% SAVE INTERPOLATED CHANNELS AND NUMBER OF EPOCHS AS .MAT
+% SAVE INTERPOLATED CHANNELS AS .MAT
 save InterpolatedChannelsEO.mat interchans_EO
 save InterpolatedChannelsEC.mat interchans_EC
 save NumberOfEpochsEO.mat numepochs_EO
 save NumberOfEpochsEC.mat numepochs_EC
 
 fprintf('\n\n\n**** FINISHED ****\n\n\n');
+
+%% OTHER THINGS TO CONSIDER
+    
+    % TRIM DATASET (BETWEEN REREFERENCE AND RESAMPLE?). TURKU
+    % EEG  = pop_eegtrim(EEG, 0, 3000 , 'post',  3000, 'pre',  0);
+    
+    % CHANGE ORDER OF CERTAIN FUNCTIONS?
+    
+    % LOW-PASS FILTER AT 40 HZ INSTEAD OF NOTCH? OR BOTH?
+    
+    % USE CLEANLINE OR CLEANLINENOISE. DOES NOT WORK WELL ATM.
+   
+    % LORETA? SINGLE EQUIVALENT CURRENT DIPOLES?
+    
+    % WHAT ABOUT ALL THE BOUNDARY EVENTS CREATED WHEN EXTRACTING RS DATA?
+    
+    % CREATE STUDY IN EEGLAB?
+    
+    % CONSIDER PREP PIPELINE (2015) AND ROBUST PIPELINE (2019)
+    
+    % CREATE SUBJECT FOLDERS FOR PREPROCESSED DATA? Preprocess folder?
+    
+    % CODE FOR SPLITTING INTO RS/SD UP TO DATE?
+    
+    % RUN HIGH-PASS WITH CLEAN_RAW, THEN NOTCH, THEN RUN THE REST OF CLEAN?
+    
+    % DOWNSAMPLE AFTER ICA? SEE SMITH ET AL
+    % CANT RESAMPLE AFTER EPOCHING SO CHANGED IT BACK. WHY DID THEY DO IT?
+    % MORE DATA POINTS FOR ICA IS GOOD, BUT IS IT REALLY WORTH IT?
+    
+    % 1-50 HZ BANDPASS? WHY? SMTIH ET AL
+    
+    % trimOutlier https://github.com/sccn/trimOutlier (UNEPOCHED DATA)
+    % USE IT BEFORE APPLYING ANY FILTERS?
+    
+    % PROJECT ICA BACK TO 0.1 HZ HIGH-PASS DATA? MAYBE NOT, MAKOTO
+    
+    % REJECT EPOCHS AGAIN AFTER -500 +500 UV? WITH SD? 
+    % Improbability test with 6SD for single channels and 2SD for all channels
+    % REMOVES MARKED EPOCHS
+    EEG = pop_jointprob(EEG,1,[5:length(EEG_EO.chanlocs)] ,6,2,0,1,0,[],0);
+    
+    % AM I ADDING Cz CORRECTLY? APPEND?
+    
+    % WHAT ABOUT 30 HZ LOW-PASS FILTER TO REMOVE A LOT OF NOISE, SINCE I AM
+    % NOT INTERESTED IN THOS FREQUENCIES ANYWAY?
+    
+    % "INCLUDE EOG CHANNELS IN ICA UNLESS THEY ARE BIPOLAR-REFERENCED TO
+    % EACH OTHER"
+    
+    % MY EPOCHS ARE NOT 2.048 AFTER EPOCHING. PROBLEM?
+    
+    % I CHANGED SAMPLING RATE TO 250 TO GET 2^N DATA POINTS IN THE
+    % EPOCHS I HAD 524 BEFORE, CHANGING TO 250 HZ GIVES 512. SMITH ET AL.
+    % SEE FRAMES PER EPOCH IN GUI OR EEG.pnts
+    
+    % I HAVE NOW CHANGED CLEAN_RAW TO BURSTCIRETION == 'OFF' TO SEE WHAT
+    % HAPPENS WHEN CORRECTING INSTEAD OF REMOVING
