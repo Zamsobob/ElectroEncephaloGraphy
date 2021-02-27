@@ -14,8 +14,8 @@ addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0')
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
 % SET EEGLAB PREFERENCES
-pop_editoptions( 'option_storedisk', 1);
-pop_editoptions( 'option_single', 0);
+pop_editoptions('option_storedisk', 1);
+pop_editoptions('option_single', 0);
 
 % DEFINE THE SET OF SUBJECTS THAT WERE ETHICALLY APPROVED
 subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
@@ -56,6 +56,11 @@ if ~exist('RS_Preprocessed', 'dir')
     mkdir EEG_Preprocessed
 end
 final = [ eegfolder 'EEG_Preprocessed'];
+
+if ~exist('Saved_Variables', 'dir')
+    mkdir Saved_Variables
+end
+vardir = [ eegfolder 'Saved_Variables'];
 
 %% LOADING RAW FAA DATA AND RELEVANT FILES
 
@@ -502,7 +507,8 @@ for s = 1:numsubjects
      
 end
 
-% SAVE INTERPOLATED CHANNELS AS .MAT
+% SAVE INTERPOLATED CHANNELS AND NUMBER OF EPOCHS AS .MAT IN FOLDER Saved_Variables
+cd 'Saved_Variables';
 save InterpolatedChannelsEO.mat interchans_EO
 save InterpolatedChannelsEC.mat interchans_EC
 save NumberOfEpochsEO.mat numepochs_EO
