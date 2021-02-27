@@ -35,12 +35,12 @@ localizer = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Localizer\';
 if ~exist('EEG_RS', 'dir')
     mkdir EEG_RS RS;
 end
-    rsdir = [ eegfolder 'EEG_RS\RS'];
+rsdir = [ eegfolder 'EEG_RS\RS'];
     
 if ~exist('EEG_SD', 'dir')
     mkdir EEG_SD SD;
 end
-    sddir = [ eegfolder 'EEG_SD\SD'];
+sddir = [ eegfolder 'EEG_SD\SD'];
     
 if ~exist('RS_EO', 'dir')
     mkdir EEG_RS RS_EO
@@ -130,12 +130,23 @@ for s = 1:numsubjects
     
     %% EXTRACT RESTING-STATE (RS) AND STATE-DEPENDENT (SD) DATA
     % DEFINE WHERE TO SPLIT TRIALS. RS PERIOD ENDS AFTER 16TH EVENT.
+    % SLIGHTLY DIFFERENT EVENTS FOR SUB-032 (ENDS AFTER EVENT 17).
     
-    startpoint_RS = EEG.xmin/EEG.srate; % FIRST EVENT RS
-    endpoint_RS = EEG.event(16).latency/EEG.srate; % LAST EVENT RS
+    if s == 20 % SUB-032
+        startpoint_RS = EEG.event(1).latency/EEG.srate; % FIRST EVENT RS
+        endpoint_RS = EEG.event(17).latency/EEG.srate; % LAST EVENT RS
     
-    startpoint_SD = EEG.event(56).latency/EEG.srate; % FIRST EVENT SD
-    endpoint_SD = EEG.event(length(EEG.event)).latency; % LAST EVENT SD
+        startpoint_SD = EEG.event(57).latency/EEG.srate; % FIRST EVENT SD
+        endpoint_SD = EEG.event(length(EEG.event)).latency; % LAST EVENT SD
+        
+    else % REST OF SUBJECTS
+        startpoint_RS = EEG.xmin/EEG.srate; % FIRST EVENT RS
+        endpoint_RS = EEG.event(16).latency/EEG.srate; % LAST EVENT RS
+    
+        startpoint_SD = EEG.event(56).latency/EEG.srate; % FIRST EVENT SD
+        endpoint_SD = EEG.event(length(EEG.event)).latency; % LAST EVENT SD
+        
+    end
 
     % SELECT RS DATA AND SD DATA
     EEG_RS = pop_select(EEG,'time',[startpoint_RS endpoint_RS]);
@@ -194,6 +205,7 @@ for s = 1:numsubjects
         'BurstRejection', 'off', ...
         'Distance', 'Euclidian');
     
+    % I DO NOT WANT CLEAN_RAWDATA TO REMOVE EOG CHANNELS
     newchans_EO = {EEG_EO.chanlocs.labels}; % SAVE NEW EO CHANS AFTER CLEAN
     chandiff_EO = setdiff(oldchans, newchans_EO); % REMOVED CHANNELS
     
@@ -211,7 +223,8 @@ for s = 1:numsubjects
         chandiff_EO(strncmpi(chandiff_EO,'LO1',3)) = [];
     end
     
-    % GO BACK TO DATA BEFORE CLEAN_RAW AND REMOVE ONLY EEG CHANNELS
+    % GO BACK TO DATA BEFORE CLEAN_RAW AND REMOVE ONLY EEG CHANNELS,
+    % LEAVING EOG CHANNELS IN THE DATASET
     if ~isempty(chandiff_EO)
         EEG_EO = pop_select(origEEG_EO, 'nochannel', chandiff_EO);
     end
@@ -282,7 +295,7 @@ for s = 1:numsubjects
     oldchans = {EEG.chanlocs.labels};
     origEEG_EC = EEG_EC;
     
-    % USE CLEAN_RAWDATA TO REMOVE BAD CHANNELS
+    % USE CLEAN_RAWDATA TO REMOVE ALL BAD CHANNELS
     EEG_EC = pop_clean_rawdata(EEG_EC, 'FlatlineCriterion', 5, ...
         'ChannelCriterion', 0.7, ...
         'LineNoiseCriterion', 4, ...
@@ -293,6 +306,7 @@ for s = 1:numsubjects
         'BurstRejection', 'off', ...
         'Distance', 'Euclidian');
     
+    % I DO NOT WANT CLEAN_RAWDATA TO REMOVE EOG CHANNELS
     newchans_EC = {EEG_EC.chanlocs.labels}; % SAVE NEW EO CHANS AFTER CLEAN
     chandiff_EC = setdiff(oldchans, newchans_EC); % DIFFERENCE OLD AND NEW CHANNELS
     
@@ -310,7 +324,8 @@ for s = 1:numsubjects
         chandiff_EC(strncmpi(chandiff_EC,'LO1',3)) = [];
     end
     
-    % GO BACK TO DATA BEFORE CLEAN_RAW AND REMOVE ONLY EEG CHANNELS
+    % GO BACK TO DATA BEFORE CLEAN_RAW AND REMOVE ONLY EEG CHANNELS,
+    % LEAVING EOG CHANNELS IN THE DATASET
     if ~isempty(chandiff_EO)
         EEG_EC = pop_select(origEEG_EC, 'nochannel', chandiff_EC);
     end
@@ -357,7 +372,7 @@ for s = 1:numsubjects
     EEG_EC = pop_loadset('filename',[subject '_EC_Clean_Epoch.set'],'filepath', ecdir);
     
     % MARK BAD EPOCHS (-500 TO 500 uV THRESHOLD). ONLY EEG CHANNELS. DO NOT
-    % WANT TO CATCH EYE BLINKS HERE
+    % WANT TO CATCH EYE BLINKS HERE 
      EEG_EO = pop_eegthresh(EEG_EO,1, ...
          [5:length(EEG_EO.chanlocs)], ...
          -500, 500, ...
