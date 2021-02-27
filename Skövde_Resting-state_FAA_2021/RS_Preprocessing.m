@@ -60,7 +60,6 @@ final = [ eegfolder 'EEG_Preprocessed'];
 if ~exist('Saved_Variables', 'dir')
     mkdir Saved_Variables
 end
-vardir = [ eegfolder 'Saved_Variables'];
 
 %% LOADING RAW FAA DATA AND RELEVANT FILES
 
