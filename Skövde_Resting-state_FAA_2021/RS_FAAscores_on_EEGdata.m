@@ -18,12 +18,6 @@ eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
 rawfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_RAW\';
 final = [ eegfolder 'EEG_Preprocessed'];
 
-% CREATE FOLDER TO SAVE FILES IN
-if ~exist('EEG_TFA', 'dir')
-    mkdir EEG_Preprocessed EEG_TFA;
-end
-tfadir = [final filesep 'EEG_TFA'];
-
 % DEFINE THE SET OF SUBJECTS THAT WERE ETHICALLY APPROVED
 subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
     'sub-011', 'sub-013', 'sub-014', 'sub-015', 'sub-019', ...
