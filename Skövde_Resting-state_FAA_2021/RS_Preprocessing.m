@@ -84,7 +84,7 @@ for s = 1:numsubjects
     % REMOVE FIRST(G.TEC TIME) AND LAST (EMPTY) CHANNELS
     EEG = pop_select(EEG, 'nochannel', [1 34]);
     
-    % IMPORT CHANNELS WITH Cz AS REFERENCE. HEAD CENTER IS OPTIMIZED
+    % IMPORT CHANNELS WITH Cz AS ONLINE REFERENCE. HEAD CENTER IS OPTIMIZED
     EEG = pop_chanedit(EEG, 'load', {[localizer 'Locations_32Channels.ced'], ...
         'filetype', 'autodetect'}, ...
         'changefield', {EEG.nbchan + 1, 'datachan', 0}, ...
@@ -170,7 +170,7 @@ for s = 1:numsubjects
     oldchans = {EEG.chanlocs.labels};
     origEEG_EO = EEG_EO;
     
-    % USE CLEAN_RAWDATA TO REMOVE BAD CHANNELS
+    % USE CLEAN_RAWDATA TO IDENTIFY CHANNELS FOR REMOVAL
     EEG_EO = pop_clean_rawdata(EEG_EO, 'FlatlineCriterion', 5, ...
         'ChannelCriterion', 0.7, ...
         'LineNoiseCriterion', 4, ...
@@ -181,11 +181,12 @@ for s = 1:numsubjects
         'BurstRejection', 'off', ...
         'Distance', 'Euclidian');
     
-    % I DO NOT WANT CLEAN_RAWDATA TO REMOVE EOG CHANNELS
+    % I DO NOT WANT TO REMOVE EOG CHANNELS
     newchans_EO = {EEG_EO.chanlocs.labels}; % SAVE NEW EO CHANS AFTER CLEAN
     chandiff_EO = setdiff(oldchans, newchans_EO); % REMOVED CHANNELS
     
     % IDENTIFY IF EOG CHANNELS WERE REMOVED WITH CLEAN_RAWDATA
+    % CREATED A LIST OF CHANNELS CLEAN_RAWDATA REMOVED, MINUS EOG CHANNELS
     if any(strcmp(chandiff_EO,'LO2'))
         chandiff_EO(strncmpi(chandiff_EO,'LO2',3)) = [];
     end
@@ -201,6 +202,7 @@ for s = 1:numsubjects
     
     % GO BACK TO DATA BEFORE CLEAN_RAW AND REMOVE ONLY EEG CHANNELS,
     % LEAVING EOG CHANNELS IN THE DATASET
+    EEG_EO = origEEG_EO;
     if ~isempty(chandiff_EO)
         EEG_EO = pop_select(origEEG_EO, 'nochannel', chandiff_EO);
     end
@@ -271,7 +273,7 @@ for s = 1:numsubjects
     oldchans = {EEG.chanlocs.labels};
     origEEG_EC = EEG_EC;
     
-    % USE CLEAN_RAWDATA TO REMOVE ALL BAD CHANNELS
+    % USE CLEAN_RAWDATA TO IDENTIFY CHANNELS FOR REMOVAL
     EEG_EC = pop_clean_rawdata(EEG_EC, 'FlatlineCriterion', 5, ...
         'ChannelCriterion', 0.7, ...
         'LineNoiseCriterion', 4, ...
@@ -282,7 +284,7 @@ for s = 1:numsubjects
         'BurstRejection', 'off', ...
         'Distance', 'Euclidian');
     
-    % I DO NOT WANT CLEAN_RAWDATA TO REMOVE EOG CHANNELS
+    % I DO NOT WANT TO REMOVE EOG CHANNELS
     newchans_EC = {EEG_EC.chanlocs.labels}; % SAVE NEW EO CHANS AFTER CLEAN
     chandiff_EC = setdiff(oldchans, newchans_EC); % DIFFERENCE OLD AND NEW CHANNELS
     
@@ -302,6 +304,7 @@ for s = 1:numsubjects
     
     % GO BACK TO DATA BEFORE CLEAN_RAW AND REMOVE ONLY EEG CHANNELS,
     % LEAVING EOG CHANNELS IN THE DATASET
+    EEG_EC = origEEG_EC;
     if ~isempty(chandiff_EO)
         EEG_EC = pop_select(origEEG_EC, 'nochannel', chandiff_EC);
     end
@@ -326,7 +329,7 @@ for s = 1:numsubjects
             'filepath', ecdir);
     end
     
-    %% EPOCH EYES OPEN DATA
+    %% EPOCH EYES CLOSED DATA
     
     % CREATE CONTINOUS EO EPOCHS OG 2.048 SEC, WITH 75% OVERLAP (0.512)
     EEG_EC = eeg_regepochs(EEG_EC, 'recurrence', 0.512, ...
@@ -485,4 +488,4 @@ save InterpolatedChannelsEC.mat interchans_EC
 save NumberOfEpochsEO.mat numepochs_EO
 save NumberOfEpochsEC.mat numepochs_EC
 
-fprintf('\n\n\n**** FINISHED ****\n\n\n');
+fprintf('\n\n\n**** PREPROCESSING FINISHED ****\n\n\n');
