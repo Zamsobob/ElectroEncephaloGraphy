@@ -6,7 +6,7 @@ addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0');
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
 % SET EEGLAB PREFERENCES
-pop_editoptions( 'option_storedisk', 1);
+pop_editoptions('option_storedisk', 1);
 pop_editoptions( 'option_single', 0);
 
 % PATH TO THE NECESSARY FOLDERS
@@ -27,34 +27,29 @@ numsubjects = length(subject_list);
 
 %% GENERATE EEG MONTAGE AND TRANSFORMATION MATRICES
 
-for q = 1 % ONLY ONE SUBJECT NEEDED SINCE THEY ALL HAVE THE SAME ELECTRODES
-    
-    subject = subject_list{q};
-    
-    % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
-    subjectfolder = [rawfolder subject '\'];
-    
-    % LOAD PREPROCESSED DATA FOR ONE SUBJECT
-    EEG = pop_loadset('filename',[subject '_EO_Preprocessed.set'],'filepath', final);
+subject = subject_list{1}; % ONLY ONE SUBJECT NEEDED
 
-    % CREATE A COLUMN VECTOR OF CHANNEL LABELS BY TRANSPOSITION
-    electrodes = {EEG.chanlocs.labels}';
+% LOAD PREPROCESSED DATA FOR ONE SUBJECT
+EEG = pop_loadset('filename',[subject '_EO_Preprocessed.set'],'filepath', final);
+EEG = eeg_checkset(EEG);
+
+% CREATE A COLUMN VECTOR OF CHANNEL LABELS BY TRANSPOSITION
+electrodes = {EEG.chanlocs.labels}';
     
-    % SPECIFY AN EEG MONTAGE OF THE SPATIAL ELECTRODE LOCATIONS USING THE
-    % CSD TOOLBOX. THE HEAD IS REPRESENTED AS A UNTI SPHERE (RADIUS OF 1)
-    montage = ExtractMontage('10-5-System_Mastoids_EGI129.csd', electrodes);
+% SPECIFY AN EEG MONTAGE OF THE SPATIAL ELECTRODE LOCATIONS USING THE
+% CSD TOOLBOX. THE HEAD IS REPRESENTED AS A UNTI SPHERE (RADIUS OF 1)
+montage = ExtractMontage('10-5-System_Mastoids_EGI129.csd', electrodes);
     
-    % GENERATE THE ELECTRODES BY ELECTRODES TRANSFORMATION MATRICES 'G' AND
-    % 'H THAT THE SURFACE LAPLACIAN IN THE CSD TOOLBOX IS BASED ON.
-    % 'G' USED FOR SPHERICAL SPLINE INTERPOLATION OF SURFACE POTENTIALS
-    % 'H' USED FOR CURRENT SOURCE DENSITIES
-    [G, H] = GetGH(montage); % SPLINE FLEXIBILITY m = 4 (DEFAULT)
+% GENERATE THE ELECTRODES BY ELECTRODES TRANSFORMATION MATRICES 'G' AND
+% 'H THAT THE SURFACE LAPLACIAN IN THE CSD TOOLBOX IS BASED ON.
+% 'G' USED FOR SPHERICAL SPLINE INTERPOLATION OF SURFACE POTENTIALS
+% 'H' USED FOR CURRENT SOURCE DENSITIES
+[G, H] = GetGH(montage); % SPLINE FLEXIBILITY m = 4 (DEFAULT)
     
-    % SAVE G AND H TO LATER IMPORT WHEN COMPUTING THE CSD TRANFORM
-    cd 'Saved_Variables';
-    save CSDmontage.mat G H montage;
-    cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
-end
+% SAVE G AND H TO LATER IMPORT WHEN COMPUTING THE CSD TRANFORM
+cd 'Saved_Variables';
+save CSDmontage.mat G H montage;
+cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
 %% CURRENT SOURCE DENSITY (CSD) TRANSFORMATION
 
@@ -67,30 +62,29 @@ for s = 1:numsubjects
     subjectfolder = [rawfolder subject '\'];
     
     % LOAD PREPROCESSED EO DATASETS
-    EEG = pop_loadset('filename',[subject '_EO_Preprocessed.set'],'filepath', final);
-    
+    EEG_EO = pop_loadset('filename',[subject '_EO_Preprocessed.set'],'filepath', final);
+    EEG_EO = eeg_checkset(EEG_EO);
     
     % APPLY THE SURFACE LAPLACIAN TRANSFORM TO EACH EPOCH
-    for i = 1:size(EEG.data, 3)
-        D = squeeze(EEG.data(:,:,i)); % D CONTAINS EEG SIGNALS TO BE TRANSFORMED
+    %%%
+    for i = 1:size(EEG_EO.data, 3)
+        D = squeeze(EEG_EO.data(:,:,i)); % D CONTAINS EEG SIGNALS TO BE TRANSFORMED
         X = CSD(D, G, H); % X IS THE CSD ESTIMATE OF D
-        CSDdata(:,:,i) = X;   
+        CSDdata_EO(:,:,i) = X;   
     end
     
-    EEG.data = CSDdata; % REPLACE EEG DATA WITH CSD ESTIMATES
-    EEG = eeg_checkset(EEG);
-    EEG.setname = [subject '_EO_CSD_Estimates']; % NAME FOR DATASET MENU
+    EEG_EO.data = CSDdata_EO; % REPLACE EEG DATA WITH CSD ESTIMATES
+    EEG_EO = eeg_checkset(EEG_EO);
+    EEG_EO.setname = [subject '_EO_CSD_Estimates']; % NAME FOR DATASET MENU
     
     % SAVE CSD TRANSFORMED DATA. NOTE: DATA CONTAINS CSD ESTIMATES, NOT EEG SIGNALS
-    EEG = pop_saveset(EEG, ...
+    EEG_EO = pop_saveset(EEG_EO, ...
          'filename',[subject '_EO_CSD_Estimates.set'], ...
          'filepath', final);
-     
-     clear i EEG D X CSDdata
-     
+%      
+%      clear i EEG D X CSDdata
+%      
 end
-
-clear s
 
 % LOOP THROUGH ALL SUBJECTS IN THE EYES CLOSED CONDITION
 for s = 1:numsubjects
@@ -101,28 +95,34 @@ for s = 1:numsubjects
     subjectfolder = [rawfolder subject '\'];
     
     % LOAD PREPROCESSED EC DATASETS
-    EEG = pop_loadset('filename',[subject '_EC_Preprocessed.set'],'filepath', final);
-    
+    EEG_EC = pop_loadset('filename',[subject '_EC_Preprocessed.set'],'filepath', final);
+    EEG_EC = eeg_checkset(EEG_EC);
     
     % APPLY THE SURFACE LAPLACIAN TRANSFORM TO EACH EPOCH
-    for i = 1:size(EEG.data, 3)
-        D = squeeze(EEG.data(:,:,i)); % D CONTAINS EEG SIGNALS TO BE TRANSFORMED
+    for i = 1:size(EEG_EC.data, 3)
+        D = squeeze(EEG_EC.data(:,:,i)); % D CONTAINS EEG SIGNALS TO BE TRANSFORMED
         X = CSD(D, G, H); % X IS THE CSD ESTIMATE OF D
-        CSDdata(:,:,i) = X;
+        CSDdata_EC(:,:,i) = X;
     end
     
-    EEG.data = CSDdata; % REPLACE EEG DATA WITH CSD ESTIMATE
-    EEG = eeg_checkset(EEG);
-    EEG.setname = [subject '_EC_CSD_Estimates']; % NAME FOR DATASET MENU
+    EEG_EC.data = CSDdata_EC; % REPLACE EEG DATA WITH CSD ESTIMATE
+    EEG_EC = eeg_checkset(EEG_EC);
+    EEG_EC.setname = [subject '_EC_CSD_Estimates']; % NAME FOR DATASET MENU
     
     % SAVE CSD TRANSFORMED DATA. NOTE: DATA CONTAINS CSD ESTIMATES, NOT EEG SIGNALS
-    EEG = pop_saveset(EEG, ...
+    EEG_EC = pop_saveset(EEG_EC, ...
          'filename',[subject '_EC_CSD_Estimates.set'], ...
          'filepath', final);
      
-     clear i EEG D X CSDdata
+%      clear i EEG D X CSDdata
      
 end
 
 % REREF??
 fprintf('\n\n\n**** CSD FINISHED ****\n\n\n');
+
+%% ------------------------------------------------------------------
+% NOTES
+% verify the integrity and correctness of the identified EEG montage with the function “MapMontage” in
+% CSD toolbox by entering “MapMontage(montage)” in the MATLAB command window. This produces a
+% topographical plot of the EEG montage. Very important.
