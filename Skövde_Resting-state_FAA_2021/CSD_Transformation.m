@@ -27,9 +27,9 @@ numsubjects = length(subject_list);
 
 %% GENERATE EEG MONTAGE AND TRANSFORMATION MATRICES
 
-for s = 1
+for q = 1 % ONLY ONE SUBJECT NEEDED SINCE THEY ALL HAVE THE SAME ELECTRODES
     
-    subject = subject_list{s};
+    subject = subject_list{q};
     
     % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
     subjectfolder = [rawfolder subject '\'];
@@ -37,16 +37,18 @@ for s = 1
     % LOAD PREPROCESSED DATA FOR ONE SUBJECT
     EEG = pop_loadset('filename',[subject '_EO_Preprocessed.set'],'filepath', final);
 
-    % CREATE COLUMN VECTORS OF CHANNEL LABELS BY TRANSPOSITION
+    % CREATE A COLUMN VECTOR OF CHANNEL LABELS BY TRANSPOSITION
     electrodes = {EEG.chanlocs.labels}';
     
-    % SPECIFY AN EEG MONTAGE OF THE SPATIAL ELECTRODE LOCATIONS WITH THE
+    % SPECIFY AN EEG MONTAGE OF THE SPATIAL ELECTRODE LOCATIONS USING THE
     % CSD TOOLBOX. THE HEAD IS REPRESENTED AS A UNTI SPHERE (RADIUS OF 1)
     montage = ExtractMontage('10-5-System_Mastoids_EGI129.csd', electrodes);
     
-    % Generate the transformation matrices “G” and “H.” The surface Laplacian transform in CSD
-    % toolbox is based on two “electrodes-by-electrodes” transformation matrices “G” and “H”
-    [G, H] = GetGH(montage);
+    % GENERATE THE ELECTRODES BY ELECTRODES TRANSFORMATION MATRICES 'G' AND
+    % 'H THAT THE SURFACE LAPLACIAN IN THE CSD TOOLBOX IS BASED ON.
+    % 'G' USED FOR SPHERICAL SPLINE INTERPOLATION OF SURFACE POTENTIALS
+    % 'H' USED FOR CURRENT SOURCE DENSITIES
+    [G, H] = GetGH(montage); % SPLINE FLEXIBILITY m = 4 (DEFAULT)
     
     % SAVE G AND H TO LATER IMPORT WHEN COMPUTING THE CSD TRANFORM
     cd 'Saved_Variables';
@@ -59,53 +61,63 @@ end
 % LOOP THROUGH ALL SUBJECTS IN THE EYES OPEN CONDITION
 for s = 1:numsubjects
     
+    subject = subject_list{s};
+    
+    % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
+    subjectfolder = [rawfolder subject '\'];
+    
     % LOAD PREPROCESSED EO DATASETS
     EEG = pop_loadset('filename',[subject '_EO_Preprocessed.set'],'filepath', final);
     
     
-    % APPLY THE SURFACE LAPLACIAN TRANSFORM TO EVERY EPOCH
+    % APPLY THE SURFACE LAPLACIAN TRANSFORM TO EACH EPOCH
     for i = 1:size(EEG.data, 3)
-        
-        D = squeeze(EEG.data(:,:,i));
-        X = CSD(D, G, H); % X IS THE CSD ESTIMATES
-        CSDdata(:,:,i) = X;
-        
+        D = squeeze(EEG.data(:,:,i)); % D CONTAINS EEG SIGNALS TO BE TRANSFORMED
+        X = CSD(D, G, H); % X IS THE CSD ESTIMATE OF D
+        CSDdata(:,:,i) = X;   
     end
+    
     EEG.data = CSDdata; % REPLACE EEG DATA WITH CSD ESTIMATES
     EEG = eeg_checkset(EEG);
-    EEG.setname = [subject '_EO_Preprocessed_CSD_Estimates']; % NAME FOR DATASET MENU
+    EEG.setname = [subject '_EO_CSD_Estimates']; % NAME FOR DATASET MENU
     
-    % SAVE CSD TRANSFORMED DATA. NOTE: DATA CONTAIN CSD ESTIMATES, NOT EEG SIGNALS
+    % SAVE CSD TRANSFORMED DATA. NOTE: DATA CONTAINS CSD ESTIMATES, NOT EEG SIGNALS
     EEG = pop_saveset(EEG, ...
-         'filename',[subject '_EO_Preprocesseed_CSD_Estimates.set'], ...
+         'filename',[subject '_EO_CSD_Estimates.set'], ...
          'filepath', final);
      
      clear i EEG D X CSDdata
      
 end
 
+clear s
+
 % LOOP THROUGH ALL SUBJECTS IN THE EYES CLOSED CONDITION
 for s = 1:numsubjects
+    
+    subject = subject_list{s};
+    
+    % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
+    subjectfolder = [rawfolder subject '\'];
     
     % LOAD PREPROCESSED EC DATASETS
     EEG = pop_loadset('filename',[subject '_EC_Preprocessed.set'],'filepath', final);
     
     
-    % APPLY THE SURFACE LAPLACIAN TRANSFORM TO EVERY EPOCH
+    % APPLY THE SURFACE LAPLACIAN TRANSFORM TO EACH EPOCH
     for i = 1:size(EEG.data, 3)
-        
-        D = squeeze(EEG.data(:,:,i));
-        X = CSD(D, G, H); % X IS THE CSD ESTIMATES
+        D = squeeze(EEG.data(:,:,i)); % D CONTAINS EEG SIGNALS TO BE TRANSFORMED
+        X = CSD(D, G, H); % X IS THE CSD ESTIMATE OF D
         CSDdata(:,:,i) = X;
-        
     end
-    EEG.data = CSDdata; % REPLACE EEG DATA WITH CSD ESTIMATES
-    EEG = eeg_checkset(EEG);
-    EEG.setname = [subject '_EC_Preprocessed_CSD_Estimates']; % NAME FOR DATASET MENU
     
-    % SAVE CSD TRANSFORMED DATA. NOTE: DATA CONTAIN CSD ESTIMATES, NOT EEG SIGNALS
+    EEG.data = CSDdata; % REPLACE EEG DATA WITH CSD ESTIMATE
+    EEG = eeg_checkset(EEG);
+    EEG.setname = [subject '_EC_CSD_Estimates']; % NAME FOR DATASET MENU
+    
+    % SAVE CSD TRANSFORMED DATA. NOTE: DATA CONTAINS CSD ESTIMATES, NOT EEG SIGNALS
     EEG = pop_saveset(EEG, ...
-         'filename',[subject '_EC_Preprocesseed_CSD_Estimates.set'], ...
+         'filename',[subject '_EC_CSD_Estimates.set'], ...
          'filepath', final);
      
      clear i EEG D X CSDdata
