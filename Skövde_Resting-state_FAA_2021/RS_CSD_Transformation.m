@@ -1,3 +1,5 @@
+clear;
+clc;
 %% SET UP FILES AND FOLDERS
 
 % MAKE SURE EEGLAB IS IN PATH
@@ -6,7 +8,7 @@ addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0');
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
 % SET EEGLAB PREFERENCES
-pop_editoptions('option_storedisk', 0);
+pop_editoptions('option_storedisk', 1);
 pop_editoptions( 'option_single', 0);
 
 % PATH TO THE NECESSARY FOLDERS
@@ -26,8 +28,6 @@ subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
 numsubjects = length(subject_list);
 
 %% GENERATE EEG MONTAGE AND TRANSFORMATION MATRICES
-
-subject = subject_list{1}; % ONLY ONE SUBJECT NEEDED
 
 % LOAD PREPROCESSED DATA FOR ONE SUBJECT
 EEG = pop_loadset('filename', 'sub-002_EO_Preprocessed.set','filepath', final);
