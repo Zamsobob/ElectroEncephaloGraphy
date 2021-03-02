@@ -190,7 +190,3 @@ set(gca,'xlim',[-5 105])
 xlabel('Frequency (Hz)')
 ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
 title('Power Spectra for Eyes Closed Right Cluster')
-
-
-% EYES OPEN AND EYES CLOSED. COMBINE THEM? MIGHT NEED TO TEST FOR
-% STATISTICAL DIFFERENCE BETWEEN THE CONDITIONS WITH T-TEST?
