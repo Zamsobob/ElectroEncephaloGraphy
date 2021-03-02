@@ -36,11 +36,11 @@ EEG = pop_loadset('filename', 'sub-002_EO_Preprocessed.set','filepath', final);
 electrodes = {EEG.chanlocs.labels}';
     
 % SPECIFY AN EEG MONTAGE OF THE SPATIAL ELECTRODE LOCATIONS USING THE
-% CSD TOOLBOX. THE HEAD IS REPRESENTED AS A UNTI SPHERE (RADIUS OF 1)
+% CSD TOOLBOX. THE HEAD IS REPRESENTED AS A UNIT SPHERE (RADIUS OF 1)
 montage = ExtractMontage('10-5-System_Mastoids_EGI129.csd', electrodes);
     
-% GENERATE THE ELECTRODES BY ELECTRODES TRANSFORMATION MATRICES 'G' AND
-% 'H THAT THE SURFACE LAPLACIAN IN THE CSD TOOLBOX IS BASED ON.
+% GENERATE THE ELECTRODES X ELECTRODES TRANSFORMATION MATRICES 'G' AND
+% 'H' THAT THE SURFACE LAPLACIAN IN THE CSD TOOLBOX IS BASED ON.
 % 'G' USED FOR SPHERICAL SPLINE INTERPOLATION OF SURFACE POTENTIALS
 % 'H' USED FOR CURRENT SOURCE DENSITIES
 [G, H] = GetGH(montage); % SPLINE FLEXIBILITY(m) = 4 (DEFAULT)
@@ -118,15 +118,4 @@ for s = 1:numsubjects
      CSDALL_EC{s} = CSDdata_EC   % REMOVE LATER
 end
 
-% REREF??
 fprintf('\n\n\n**** CSD FINISHED ****\n\n\n');
-
-%% ------------------------------------------------------------------
-% NOTES
-% verify the integrity and correctness of the identified EEG montage with the function “MapMontage” in
-% CSD toolbox by entering “MapMontage(montage)” in the MATLAB command window. This produces a
-% topographical plot of the EEG montage. Very important.
-
-% NEED TO MAKE SURE THAT I HAVE THE CORRECT POWER UNITS AFTER FOURIER TRANSFORM
-% SEE PAGE 7:
-% https://jallen.faculty.arizona.edu/sites/jallen.faculty.arizona.edu/files/Chapter_22_Surface_Laplacian.pdf 
