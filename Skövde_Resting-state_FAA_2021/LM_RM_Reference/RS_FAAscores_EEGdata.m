@@ -1,7 +1,3 @@
-%% All electrodes
-% Standard deviations?
-% Loop for EO and EC?
-
 %% SET UP FILES AND FOLDERS
 
 % MAKE SURE EEGLAB IS IN PATH
@@ -138,30 +134,28 @@ for s = 1:numsubjects
     EO_alphapower_R(1,s) = mean(10.^(EO_spect_R(alphaindex)/10));
     EC_alphapower_R(1,s) = mean(10.^(EC_spect_R(alphaindex)/10));
     
-    
-    % ALPHA ASYMMETRY SCORES EO AND EC
+    % ALPHA ASYMMETRY SCORES FOR EO AND EC
     EO_asymmetry_clust(1,s) = log(EO_alphapower_R(1,s)) - log(EO_alphapower_L(1,s));
     EC_asymmetry_clust(1,s) = log(EC_alphapower_R(1,s)) - log(EC_alphapower_L(1,s));
     
 end
 
 % EXPORT FILES TO EXCEL FOR STATISTICAL ANALYSIS
-xlswrite('FAAscores', EO_alphapower, 'EO Alpha Power');
-xlswrite('FAAscores', EC_alphapower, 'EC Alpha Power');
-xlswrite('FAAscores', EO_asymmetry, 'EO Asymmetry Scores');
-xlswrite('FAAscores', EC_asymmetry, 'EC Asymmetry Scores');
+% xlswrite('FAAscores_EEGdata', EO_alphapower, 'EO Alpha Power');
+% xlswrite('FAAscores_EEGdata', EC_alphapower, 'EC Alpha Power');
+% xlswrite('FAAscores_EEGdata', EO_asymmetry, 'EO Asymmetry Scores');
+% xlswrite('FAAscores_EEGdata', EC_asymmetry, 'EC Asymmetry Scores');
+% 
+% xlswrite('FAAscores_EEGdata', EO_alphapower_L, 'EO Alpha Power Left Cluster');
+% xlswrite('FAAscores_EEGdata', EO_alphapower_R, 'EO Alpha Power right Cluster');
+% xlswrite('FAAscores_EEGdata', EC_alphapower_L, 'EC Alpha Power Left Cluster');
+% xlswrite('FAAscores_EEGdata', EC_alphapower_R, 'EC Alpha Power right Cluster');
+% xlswrite('FAAscores_EEGdata', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
+% xlswrite('FAAscores_EEGdata', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
 
-xlswrite('FAAscores', EO_alphapower_L, 'EO Alpha Power Left Cluster');
-xlswrite('FAAscores', EO_alphapower_R, 'EO Alpha Power right Cluster');
-xlswrite('FAAscores', EC_alphapower_L, 'EC Alpha Power Left Cluster');
-xlswrite('FAAscores', EC_alphapower_R, 'EC Alpha Power right Cluster');
-xlswrite('FAAscores', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
-xlswrite('FAAscores', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
 
-fprintf('\n\n\n**** FINISHED ****\n\n\n');
-
-% PLOT POWER SPECTRUM. LOOP CAN BE USED TO MAKE SUBPLOTS
-% CREATE BETTER PLOTS WITH SPECTOPO THOUGH LATER
+% PLOT POWER SPECTRUM
+% CREATE BETTER PLOTS WITH SPECTOPO LATER
 figure
 subplot(221)
 bar(freqs, abs(EO_spect_L))
@@ -190,3 +184,5 @@ set(gca,'xlim',[-5 105])
 xlabel('Frequency (Hz)')
 ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
 title('Power Spectra for Eyes Closed Right Cluster')
+
+fprintf('\n\n\n**** FAA FINISHED ****\n\n\n');
