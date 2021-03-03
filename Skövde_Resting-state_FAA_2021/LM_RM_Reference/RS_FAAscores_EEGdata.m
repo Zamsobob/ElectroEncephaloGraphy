@@ -12,7 +12,8 @@ pop_editoptions( 'option_single', 0);
 % PATH TO THE NECESSARY FOLDERS
 eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
 rawfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_RAW\';
-final = [ eegfolder 'EEG_Preprocessed'];
+mastoidfolder = [eegfolder 'EEG_LM_RM'];
+final = [mastoidfolder 'EEG_Preprocessed\'];
 
 % DEFINE THE SET OF SUBJECTS THAT WERE ETHICALLY APPROVED
 subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
@@ -141,17 +142,17 @@ for s = 1:numsubjects
 end
 
 % EXPORT FILES TO EXCEL FOR STATISTICAL ANALYSIS
-% xlswrite('FAAscores_EEGdata', EO_alphapower, 'EO Alpha Power');
-% xlswrite('FAAscores_EEGdata', EC_alphapower, 'EC Alpha Power');
-% xlswrite('FAAscores_EEGdata', EO_asymmetry, 'EO Asymmetry Scores');
-% xlswrite('FAAscores_EEGdata', EC_asymmetry, 'EC Asymmetry Scores');
-% 
-% xlswrite('FAAscores_EEGdata', EO_alphapower_L, 'EO Alpha Power Left Cluster');
-% xlswrite('FAAscores_EEGdata', EO_alphapower_R, 'EO Alpha Power right Cluster');
-% xlswrite('FAAscores_EEGdata', EC_alphapower_L, 'EC Alpha Power Left Cluster');
-% xlswrite('FAAscores_EEGdata', EC_alphapower_R, 'EC Alpha Power right Cluster');
-% xlswrite('FAAscores_EEGdata', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
-% xlswrite('FAAscores_EEGdata', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
+xlswrite('FAAscores_EEGdata', EO_alphapower, 'EO Alpha Power');
+xlswrite('FAAscores_EEGdata', EC_alphapower, 'EC Alpha Power');
+xlswrite('FAAscores_EEGdata', EO_asymmetry, 'EO Asymmetry Scores');
+xlswrite('FAAscores_EEGdata', EC_asymmetry, 'EC Asymmetry Scores');
+
+xlswrite('FAAscores_EEGdata', EO_alphapower_L, 'EO Alpha Power Left Cluster');
+xlswrite('FAAscores_EEGdata', EO_alphapower_R, 'EO Alpha Power right Cluster');
+xlswrite('FAAscores_EEGdata', EC_alphapower_L, 'EC Alpha Power Left Cluster');
+xlswrite('FAAscores_EEGdata', EC_alphapower_R, 'EC Alpha Power right Cluster');
+xlswrite('FAAscores_EEGdata', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
+xlswrite('FAAscores_EEGdata', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
 
 
 % PLOT POWER SPECTRUM
@@ -186,3 +187,6 @@ ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
 title('Power Spectra for Eyes Closed Right Cluster')
 
 fprintf('\n\n\n**** FAA FINISHED ****\n\n\n');
+
+% EYES OPEN AND EYES CLOSED. COMBINE THEM? MIGHT NEED TO TEST FOR
+% STATISTICAL DIFFERENCE BETWEEN THE CONDITIONS WITH T-TEST?
