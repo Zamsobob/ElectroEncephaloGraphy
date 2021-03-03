@@ -96,8 +96,8 @@ for s = 1:numsubjects
         'changefield', {EEG.nbchan + 1, 'datachan', 0}, ...
         'setref', {[1:EEG.nbchan + 1], 'Cz'});
     
-    % RESAMPLE DATASET FROM 512 TO 250 HZ
-    EEG = pop_resample(EEG, 250);
+    % RESAMPLE DATASET FROM 512 TO 256 Hz
+    % EEG = pop_resample(EEG, 256);
     
     %% EXTRACT RESTING-STATE (RS) AND STATE-DEPENDENT (SD) DATA
     % DEFINE WHERE TO SPLIT TRIALS. RS PERIOD ENDS AFTER 16TH EVENT.
@@ -224,9 +224,9 @@ for s = 1:numsubjects
     
     %% EPOCH EYES OPEN DATA
      
-    % CREATE CONTINOUS EO EPOCHS OF 2.048 SECONDS, WITH 75% OVERLAP (0.512)
-    EEG_EO = eeg_regepochs(EEG_EO, 'recurrence', 0.512, ...
-        'limits', [-1.024 1.024], ...
+    % CREATE CONTINOUS EO EPOCHS OF 2 SECONDS, WITH 75% OVERLAP (0.5)
+    EEG_EO = eeg_regepochs(EEG_EO, 'recurrence', 0.5, ...
+        'limits', [0 2], ...
         'rmbase', NaN);
     
     % REMOVE BASELINE (MEAN OF THE WHOLE EPOCH)
@@ -326,17 +326,17 @@ for s = 1:numsubjects
     
     %% EPOCH EYES CLOSED DATA
     
-    % CREATE CONTINOUS EO EPOCHS OF 2.048 SEC, WITH 75% OVERLAP (0.512)
-    EEG_EC = eeg_regepochs(EEG_EC, 'recurrence', 0.512, ...
-        'limits', [-1.024 1.024], ...
+    % CREATE CONTINOUS EO EPOCHS OF 2 SEC, WITH 75% OVERLAP (0.5)
+    EEG_EC = eeg_regepochs(EEG_EC, 'recurrence', 0.5, ...
+        'limits', [0 2], ...
         'rmbase', NaN); 
     % REMOVE BASELINE (MEAN OF THE WHOLE EPOCH)
     EEG_EC = pop_rmbase(EEG_EC, [],[]);
     EEG_EC.setname = [subject '_EC_Clean_Epoch']; % NAME FOR DATASET MENU
     
     % SAVE EC DATA IN EC FOLDER
-        EEG_EC = pop_saveset(EEG_EC, 'filename',[subject '_EC_Clean_Epoch.set'], ...
-            'filepath', ecdir);
+    EEG_EC = pop_saveset(EEG_EC, 'filename',[subject '_EC_Clean_Epoch.set'], ...
+        'filepath', ecdir);
      
     %% EPOCH REMOVAL BEFORE ICA
     
@@ -390,8 +390,6 @@ for s = 1:numsubjects
     EEG_EC = pop_runica(EEG_EC, 'extended', 1, ...
         'interupt', 'on', ...
         'pca', length(EEG_EC.chanlocs));
-%     EEG_EO = eeg_checkset(EEG_EO, 'ica');
-%     EEG_EC = eeg_checkset(EEG_EC, 'ica');
     EEG_EO.setname = [subject '_EO_ICA']; % NAME FOR DATASET MENU
     EEG_EC.setname = [subject '_EC_ICA']; % NAME FOR DATASET MENU
     EEG_EO = eeg_checkset(EEG_EO, 'ica');
