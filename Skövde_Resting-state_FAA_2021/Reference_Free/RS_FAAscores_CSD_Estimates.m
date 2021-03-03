@@ -12,7 +12,8 @@ pop_editoptions( 'option_single', 0);
 % PATH TO THE NECESSARY FOLDERS
 eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
 rawfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_RAW\';
-final = [ eegfolder 'EEG_Preprocessed'];
+csdfolder = [eegfolder 'EEG_CSD\'];
+final = [csdfolder 'EEG_Preprocessed'];
 
 % DEFINE THE SET OF SUBJECTS THAT WERE ETHICALLY APPROVED
 subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
@@ -154,7 +155,7 @@ xlswrite('FAAscores_CSD', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
 xlswrite('FAAscores_CSD', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
 
 
-% PLOT POWER SPECTRUM. CREATE BETTER PLOTS WITH SPECTOPO LATER
+% PLOT POWER SPECTRUM FOR ELECTRODE CLUSTERS. CREATE BETTER PLOTS WITH SPECTOPO LATER
 figure
 subplot(221)
 bar(freqs, abs(EO_spect_L))
