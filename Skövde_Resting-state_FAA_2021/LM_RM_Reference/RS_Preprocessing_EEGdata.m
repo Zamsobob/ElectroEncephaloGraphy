@@ -32,30 +32,36 @@ rawfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_RAW\';
 localizer = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Localizer\';
 
 % CREATE FOLDERS FOR THE PREPROCESSED DATA
+if~exist('EEG_LM_RM', 'dir')
+    mkdir 'EEG_LM_RM'
+end
+mastoidfolder = [eegfolder 'EEG_LM_RM\'];
+cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_LM_RM'
+
 if ~exist('EEG_RS', 'dir')
     mkdir EEG_RS RS;
 end
-rsdir = [ eegfolder 'EEG_RS\RS'];
+rsdir = [mastoidfolder 'EEG_RS\RS'];
     
 if ~exist('EEG_SD', 'dir')
     mkdir EEG_SD SD;
 end
-sddir = [ eegfolder 'EEG_SD\SD'];
+sddir = [mastoidfolder 'EEG_SD\SD'];
     
 if ~exist('RS_EO', 'dir')
     mkdir EEG_RS RS_EO
 end
-eodir = [ eegfolder 'EEG_RS\RS_EO'];
+eodir = [mastoidfolder 'EEG_RS\RS_EO'];
 
 if ~exist('RS_EC', 'dir')
     mkdir EEG_RS RS_EC
 end
-ecdir = [ eegfolder 'EEG_RS\RS_EC'];
+ecdir = [mastoidfolder 'EEG_RS\RS_EC'];
 
 if ~exist('RS_Preprocessed', 'dir')
     mkdir EEG_Preprocessed
 end
-final = [ eegfolder 'EEG_Preprocessed'];
+final = [mastoidfolder 'EEG_Preprocessed'];
 
 if ~exist('Saved_Variables', 'dir')
     mkdir Saved_Variables
@@ -331,7 +337,7 @@ for s = 1:numsubjects
     
     %% EPOCH EYES CLOSED DATA
     
-    % CREATE CONTINOUS EO EPOCHS OG 2.048 SEC, WITH 75% OVERLAP (0.512)
+    % CREATE CONTINOUS EO EPOCHS OF 2.048 SEC, WITH 75% OVERLAP (0.512)
     EEG_EC = eeg_regepochs(EEG_EC, 'recurrence', 0.512, ...
         'limits', [-1.024 1.024], ...
         'rmbase', NaN); 
