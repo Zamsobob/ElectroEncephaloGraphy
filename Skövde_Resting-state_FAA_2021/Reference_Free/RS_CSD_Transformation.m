@@ -47,6 +47,7 @@ montage = ExtractMontage('10-5-System_Mastoids_EGI129.csd', electrodes);
 [G, H] = GetGH(montage); % SPLINE FLEXIBILITY(m) = 4 (DEFAULT)
     
 % SAVE G AND H TO LATER IMPORT WHEN COMPUTING THE CSD TRANFORM
+cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_CSD'
 save CSDmontage.mat G H montage;
 
 %% SURFACE LAPLACIAN TRANSFORMATION
@@ -80,8 +81,6 @@ for s = 1:numsubjects
          'filepath', final);
 
      CSDdata_EO(:,:,:) = NaN;    % RE-INITIALIZE DATA OUTPUT
-     
-     CSDALL_EO{s} = CSDdata_EO   % REMOVE LATER
 end
 
 clear s ep Data X
@@ -115,8 +114,6 @@ for s = 1:numsubjects
          'filepath', final);
 
      CSDdata_EC(:,:,:) = NaN;    % RE-INITIALIZE DATA OUTPUT
-     
-     CSDALL_EC{s} = CSDdata_EC   % REMOVE LATER
 end
 
 fprintf('\n\n\n**** CSD FINISHED ****\n\n\n');
