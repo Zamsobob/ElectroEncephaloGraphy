@@ -25,7 +25,7 @@ numsubjects = length(subject_list);
 % INITIALIZE VARIABLES FOR ANALYSING ALL FRONTAL ELECTRODES
 numelectrodes = 27; % NUMBER OF ELECTRODES IN DATASET
 numelecpairs = 4; % NUMBER OF ELECTRODE PAIRS TO COMPARE (E.G., F3/F4)
-nchans = 9:2:16; % VECTOR OF ALL ELECTRODES (LEFT & RIGHT) TO COMPARE
+nchans = 3:2:10; % VECTOR OF ALL ELECTRODES (LEFT & RIGHT) TO COMPARE
 EO_alphapower = zeros(numelectrodes, numsubjects); % EO ALPHA POWER
 EC_alphapower = zeros(numelectrodes, numsubjects); % EC ALPHA POWER
 EO_asymmetry = zeros(numelecpairs, numsubjects); % EO FAA SCORES
@@ -41,8 +41,8 @@ EO_asymmetry_clust = zeros(1, numsubjects); % EO FAA SCORES CLUSTERS
 EC_asymmetry_clust = zeros(1, numsubjects); % EC FAA SCORES CLUSTERS
 
 % ELECTRODE CLUSTERS
-nchans_left = [9 11 13 15]; % LEFT = [AF3 F7 F5 F3]
-nchans_right = [10 12 14 16]; % RIGHT = [AF4 F8 F6 F4]
+nchans_left = [3 5 7 9]; % LEFT = [AF3 F7 F5 F3]
+nchans_right = [4 6 8 10]; % RIGHT = [AF4 F8 F6 F4]
 
 %% FREQUENCY DECOMPOSITION
 
@@ -141,18 +141,19 @@ for s = 1:numsubjects
     
 end
 
-% EXPORT FILES TO EXCEL FOR STATISTICAL ANALYSIS
-xlswrite('FAAscores_EEGdata', EO_alphapower, 'EO Alpha Power');
-xlswrite('FAAscores_EEGdata', EC_alphapower, 'EC Alpha Power');
-xlswrite('FAAscores_EEGdata', EO_asymmetry, 'EO Asymmetry Scores');
-xlswrite('FAAscores_EEGdata', EC_asymmetry, 'EC Asymmetry Scores');
+% EXPORT FILES TO EXCEL AND SAVE IN STATISTICS FOLDER
+cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Statistics'
+xlswrite('FAAscores_EEGdata', EO_alphapower, 'EO Alpha Power', 'B2');
+xlswrite('FAAscores_EEGdata', EC_alphapower, 'EC Alpha Power', 'B2');
+xlswrite('FAAscores_EEGdata', EO_asymmetry, 'EO Asymmetry Scores', 'B2');
+xlswrite('FAAscores_EEGdata', EC_asymmetry, 'EC Asymmetry Scores', 'B2');
 
-xlswrite('FAAscores_EEGdata', EO_alphapower_L, 'EO Alpha Power Left Cluster');
-xlswrite('FAAscores_EEGdata', EO_alphapower_R, 'EO Alpha Power right Cluster');
-xlswrite('FAAscores_EEGdata', EC_alphapower_L, 'EC Alpha Power Left Cluster');
-xlswrite('FAAscores_EEGdata', EC_alphapower_R, 'EC Alpha Power right Cluster');
-xlswrite('FAAscores_EEGdata', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
-xlswrite('FAAscores_EEGdata', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
+xlswrite('FAAscores_EEGdata', EO_alphapower_L, 'EO Alpha Power Left Cluster', 'B2');
+xlswrite('FAAscores_EEGdata', EO_alphapower_R, 'EO Alpha Power right Cluster', 'B2');
+xlswrite('FAAscores_EEGdata', EC_alphapower_L, 'EC Alpha Power Left Cluster', 'B2');
+xlswrite('FAAscores_EEGdata', EC_alphapower_R, 'EC Alpha Power right Cluster', 'B2');
+xlswrite('FAAscores_EEGdata', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores', 'B2');
+xlswrite('FAAscores_EEGdata', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores', 'B2');
 
 
 % PLOT POWER SPECTRUM
@@ -187,6 +188,3 @@ ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
 title('Power Spectra for Eyes Closed Right Cluster')
 
 fprintf('\n\n\n**** FAA FINISHED ****\n\n\n');
-
-% EYES OPEN AND EYES CLOSED. COMBINE THEM? MIGHT NEED TO TEST FOR
-% STATISTICAL DIFFERENCE BETWEEN THE CONDITIONS WITH T-TEST?
