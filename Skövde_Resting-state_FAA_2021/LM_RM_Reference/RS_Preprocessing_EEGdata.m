@@ -107,8 +107,8 @@ for s = 1:numsubjects
         'sph_theta_besa', {0}, ...
         'sph_phi_besa',{0}));
     
-    % RESAMPLE DATASET FROM 512 TO 250 HZ
-    EEG = pop_resample(EEG, 250);
+    % RESAMPLE DATASET FROM 512 TO 256 HZ
+    % EEG = pop_resample(EEG, 256);
     
     %% EXTRACT RESTING-STATE (RS) AND STATE-DEPENDENT (SD) DATA
     % DEFINE WHERE TO SPLIT TRIALS. RS PERIOD ENDS AFTER 16TH EVENT.
@@ -235,9 +235,9 @@ for s = 1:numsubjects
     
     %% EPOCH EYES OPEN DATA
      
-    % CREATE CONTINOUS EO EPOCHS OF 2.048 SECONDS, WITH 75% OVERLAP (0.512)
-    EEG_EO = eeg_regepochs(EEG_EO, 'recurrence', 0.512, ...
-        'limits', [-1.024 1.024], ...
+    % CREATE CONTINOUS EO EPOCHS OF 2.048 SECONDS, WITH 75% OVERLAP (0.5)
+    EEG_EO = eeg_regepochs(EEG_EO, 'recurrence', 0.5, ...
+        'limits', [0 2], ...
         'rmbase', NaN);
     
     % REMOVE BASELINE (MEAN OF THE WHOLE EPOCH)
@@ -337,9 +337,9 @@ for s = 1:numsubjects
     
     %% EPOCH EYES CLOSED DATA
     
-    % CREATE CONTINOUS EO EPOCHS OF 2.048 SEC, WITH 75% OVERLAP (0.512)
-    EEG_EC = eeg_regepochs(EEG_EC, 'recurrence', 0.512, ...
-        'limits', [-1.024 1.024], ...
+    % CREATE CONTINOUS EO EPOCHS OF 2.048 SEC, WITH 75% OVERLAP (0.5)
+    EEG_EC = eeg_regepochs(EEG_EC, 'recurrence', 0.5, ...
+        'limits', [0 2], ...
         'rmbase', NaN); 
     % REMOVE BASELINE (MEAN OF THE WHOLE EPOCH)
     EEG_EC = pop_rmbase(EEG_EC, [],[]);
