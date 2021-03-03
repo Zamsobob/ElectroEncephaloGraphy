@@ -28,34 +28,40 @@ numsubjects = length(subject_list);
 eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
 rawfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_RAW\';
 
-%PATH TO LOCALIZER FILE (INCLUDES CHANNEL LOCATIONS AND TEMPLATES)
+%PATH TO LOCALIZER FILE (INCLUDES CHANNEL LOCATIONS)
 localizer = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Localizer\';
 
 % CREATE FOLDERS FOR THE PREPROCESSED DATA
+if~exist('EEG_CSD', 'dir')
+    mkdir 'EEG_CSD'
+end
+csdfolder = [eegfolder 'EEG_CSD\'];
+cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_CSD'
+
 if ~exist('EEG_RS', 'dir')
     mkdir EEG_RS RS;
 end
-rsdir = [ eegfolder 'EEG_RS\RS'];
+rsdir = [csdfolder 'EEG_RS\RS'];
     
 if ~exist('EEG_SD', 'dir')
     mkdir EEG_SD SD;
 end
-sddir = [ eegfolder 'EEG_SD\SD'];
+sddir = [csdfolder 'EEG_SD\SD'];
     
 if ~exist('RS_EO', 'dir')
     mkdir EEG_RS RS_EO
 end
-eodir = [ eegfolder 'EEG_RS\RS_EO'];
+eodir = [csdfolder 'EEG_RS\RS_EO'];
 
 if ~exist('RS_EC', 'dir')
     mkdir EEG_RS RS_EC
 end
-ecdir = [ eegfolder 'EEG_RS\RS_EC'];
+ecdir = [csdfolder 'EEG_RS\RS_EC'];
 
-if ~exist('RS_Preprocessed', 'dir')
+if ~exist('EEG_Preprocessed', 'dir')
     mkdir EEG_Preprocessed
 end
-final = [ eegfolder 'EEG_Preprocessed'];
+final = [csdfolder 'EEG_Preprocessed'];
 
 if ~exist('Saved_Variables', 'dir')
     mkdir Saved_Variables
@@ -483,69 +489,3 @@ save NumberOfEpochsEO.mat numepochs_EO
 save NumberOfEpochsEC.mat numepochs_EC
 
 fprintf('\n\n\n**** PREPROCESSING FINISHED ****\n\n\n');
-
-%%   OTHER THINGS TO CONSIDER
-
-    % TRIM DATASET. WILL REMOVE MY EVENTS? PROBABLY NOT.
-    % EEG  = pop_eegtrim(EEG, 0, 3000 , 'post',  3000, 'pre',  0);
-    
-    % CHANGE ORDER OF CERTAIN FUNCTIONS? SPECIFIALLY DATA SPLITTING.
-    
-    % LOW-PASS FILTER AT 40 HZ INSTEAD OF NOTCH? OR BOTH?
-    
-    % USE CLEANLINE OR CLEANLINENOISE? DOES NOT WORK WELL ATM.
-   
-    % LORETA? SINGLE EQUIVALENT CURRENT DIPOLES?
-    
-    % CREATE STUDY IN EEGLAB?
-    
-    % CONSIDER PREP PIPELINE (2015) AND ROBUST PIPELINE (2019)
-    
-    % CREATE SUBJECT FOLDERS FOR PREPROCESSED DATA? Preprocess folder?
-    
-    % CHANGED HOW TO SPLIT RS/SD DATA. NOW I GET ALL EVENTS.
-    
-    % RUN HIGH-PASS WITH CLEAN_RAW, THEN NOTCH, THEN RUN THE REST OF CLEAN?
-    % JUST USE FIR FILTERS 1 - 40? POP_EEGFILTNEW. firfilt?
-    
-    % DOWNSAMPLE AFTER ICA? SEE SMITH ET AL
-    % CANT RESAMPLE AFTER EPOCHING SO CHANGED IT BACK. WHY DID THEY DO IT?
-    % MORE DATA POINTS FOR ICA IS GOOD, BUT IS IT REALLY WORTH IT?
-    
-    % 1-50 HZ BANDPASS? WHY? SMTIH ET AL
-    
-    % trimOutlier https://github.com/sccn/trimOutlier (UNEPOCHED DATA)
-    % USE IT BEFORE APPLYING ANY FILTERS?
-    
-    % AM I ADDING Cz CORRECTLY? APPEND?
-    
-    % WHAT ABOUT 30 HZ LOW-PASS FILTER TO REMOVE A LOT OF NOISE, SINCE I AM
-    % NOT INTERESTED IN THOSE FREQUENCIES ANYWAY?
-    
-    % "INCLUDE EOG CHANNELS IN ICA UNLESS THEY ARE BIPOLAR-REFERENCED TO
-    % EACH OTHER"
-    
-    % MY EPOCHS ARE NOT 2.048 AFTER EPOCHING. PROBLEM?
-    
-    % I CHANGED SAMPLING RATE TO 250 TO GET 2^N DATA POINTS IN THE
-    % EPOCHS I HAD 524 BEFORE, CHANGING TO 250 HZ GIVES 512. SMITH ET AL.
-    % SEE FRAMES PER EPOCH IN GUI OR EEG.pnts
-    
-    % COULD ALSO CHANGE TO 2 SECOND EPOCHS WITH 256 HZ SR
-    
-    % EEGLAB RECOMMEND REJECTING DATA WITH CLEAN_RAW, NOT CORRECTING. 
-    % SEE https://eeglab.org/tutorials/06_RejectArtifacts/cleanrawdata.html
-    % I AM CHANGING BACK TO BURSTREJECTION == 'ON'
-    
-    % EEGLAB RECOMMEND pop_firws INSTEAD OF EEGFILTNEW? READ HELP DOC.
-    % "Migration to windowed sinc FIR filters (pop_firws) is recommended."
-    % CLEAN_RAWDATA FILTER IS LINEAR FIR SO ITS FINE?
-    
-    % I HAVE CREATED A NEW .CED CHANNEL LOCATION FILE WITH EVERYTHING I NEED.
-    % HAVE ONE WITH LM RM COORDINATES IN CASE I WANT THEM FOR CSD
-    
-    % I COULD REMOVE VARIABLE numsubjects = length(subject_list); AND USE
-    % numel(subject_list). COULD CHANGE NAME TO SHORTER TOO
-    
-    % CONSIDER USING ONLY MUSCLES AND EYES IN ICLABEL. CHECK HOW MANY COPONENTS ARE REMOVED FOR
-    % EACH SUBJECT. IF I USE .STUDY AND LIMO, THEN I SHOULD REJECT COMPONENTS AFTER CREATING STUDY.
