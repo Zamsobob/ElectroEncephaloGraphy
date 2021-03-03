@@ -14,7 +14,8 @@ pop_editoptions( 'option_single', 0);
 % PATH TO THE NECESSARY FOLDERS
 eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
 rawfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_RAW\';
-final = [eegfolder 'EEG_Preprocessed'];
+csdfolder = [eegfolder 'EEG_CSD\'];
+final = [csdfolder 'EEG_Preprocessed'];
 csddir = [eegfolder 'CSDtoolbox'];
 
 % ADD CSDTOOLBOX (WHICH IS IN EEGFOLDER) AND SUBFOLDERS TO PATH
