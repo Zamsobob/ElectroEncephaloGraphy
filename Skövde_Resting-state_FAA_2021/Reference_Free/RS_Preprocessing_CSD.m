@@ -9,7 +9,7 @@ save_everything = 1;
 %% SET UP FILES AND FOLDERS
 
 % MAKE SURE EEGLAB IS IN PATH
-addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0')
+addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2021.0');
 % WORKING DIRECTORY
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
@@ -91,7 +91,7 @@ for s = 1:numsubjects
     EEG = pop_select(EEG, 'nochannel', [1 34]);
     
     % IMPORT CHANNELS WITH Cz AS ONLINE REFERENCE. HEAD CENTER IS OPTIMIZED
-    EEG = pop_chanedit(EEG, 'load', {[localizer 'Locations_32Channels.ced'], ...
+    EEG = pop_chanedit(EEG, 'load', {[localizer 'Locations_32Channels_LM_RM.ced'], ...
         'filetype', 'autodetect'}, ...
         'changefield', {EEG.nbchan + 1, 'datachan', 0}, ...
         'setref', {[1:EEG.nbchan + 1], 'Cz'});
