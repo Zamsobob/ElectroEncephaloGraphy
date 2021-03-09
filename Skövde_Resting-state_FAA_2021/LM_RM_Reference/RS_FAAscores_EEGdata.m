@@ -1,7 +1,7 @@
 %% SET UP FILES AND FOLDERS
 
 % MAKE SURE EEGLAB IS IN PATH
-addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0');
+addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2021.0');
 % WORKING DIRECTORY
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
@@ -12,7 +12,7 @@ pop_editoptions( 'option_single', 0);
 % PATH TO THE NECESSARY FOLDERS
 eegfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\';
 rawfolder = 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_RAW\';
-mastoidfolder = [eegfolder 'EEG_LM_RM'];
+mastoidfolder = [eegfolder 'EEG_LM_RM\'];
 final = [mastoidfolder 'EEG_Preprocessed\'];
 
 % DEFINE THE SET OF SUBJECTS THAT WERE ETHICALLY APPROVED
@@ -24,8 +24,7 @@ numsubjects = length(subject_list);
 
 % INITIALIZE VARIABLES FOR ANALYSING ALL FRONTAL ELECTRODES
 numelectrodes = 27; % NUMBER OF ELECTRODES IN DATASET
-numelecpairs = 4; % NUMBER OF ELECTRODE PAIRS TO COMPARE (E.G., F3/F4)
-nchans = 3:2:10; % VECTOR OF ALL ELECTRODES (LEFT & RIGHT) TO COMPARE
+numelecpairs = 4; % NUMBER OF ELECTRODE PAIRS TO COMPARE (E.G., F4-F3)
 EO_alphapower = zeros(numelectrodes, numsubjects); % EO ALPHA POWER
 EC_alphapower = zeros(numelectrodes, numsubjects); % EC ALPHA POWER
 EO_asymmetry = zeros(numelecpairs, numsubjects); % EO FAA SCORES
@@ -84,11 +83,11 @@ for s = 1:numsubjects
         EC_alphapower(electrode, s) = mean(10.^(EC_spect(electrode, alphaindex)/10));
     end
     
-    % CREATE MATRIX OF ASYMMETRY SCORES. ROWS ARE ELECTRODE PAIRS AF3-AF4,
-    % F3-F4, F5-F6, AND F7-F8. COLUMNS ARE SUBJECTS
+    % CREATE MATRIX OF ASYMMETRY SCORES. ROWS ARE ELECTRODE PAIRS AF4 - AF3,
+    % F4 - F3, F6 - F5, AND F8 - F7. COLUMNS ARE SUBJECTS. RIGHT - LEFT
     for i = 1:numelecpairs
-        EO_asymmetry(i, s) = log(EO_alphapower(nchans(i),s)) - log(EO_alphapower(nchans(i)+1,s));
-        EC_asymmetry(i, s) = log(EC_alphapower(nchans(i),s)) - log(EC_alphapower(nchans(i)+1,s));
+        EO_asymmetry(i, s) = log(EO_alphapower(nchans_right(i),s)) - log(EO_alphapower(nchans_left(i),s));
+        EC_asymmetry(i, s) = log(EC_alphapower(nchans_right(i),s)) - log(EC_alphapower(nchans_left(i),s));
     end
  
     %% ANALYSIS OF LEFT AND RIGHT ELECTRODE CLUSTERS
@@ -135,7 +134,7 @@ for s = 1:numsubjects
     EO_alphapower_R(1,s) = mean(10.^(EO_spect_R(alphaindex)/10));
     EC_alphapower_R(1,s) = mean(10.^(EC_spect_R(alphaindex)/10));
     
-    % ALPHA ASYMMETRY SCORES FOR EO AND EC
+    % ALPHA ASYMMETRY SCORES FOR EO AND EC. RIGHT - LEFT
     EO_asymmetry_clust(1,s) = log(EO_alphapower_R(1,s)) - log(EO_alphapower_L(1,s));
     EC_asymmetry_clust(1,s) = log(EC_alphapower_R(1,s)) - log(EC_alphapower_L(1,s));
     
