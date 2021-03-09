@@ -1,7 +1,7 @@
 %% SET UP FILES AND FOLDERS
 
 % MAKE SURE EEGLAB IS IN PATH
-addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0');
+addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2021.0');
 % WORKING DIRECTORY
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
@@ -25,7 +25,6 @@ numsubjects = length(subject_list);
 % INITIALIZE VARIABLES FOR ANALYSING ALL FRONTAL ELECTRODES
 numelectrodes = 27; % NUMBER OF ELECTRODES IN DATASET
 numelecpairs = 4; % NUMBER OF ELECTRODE PAIRS TO COMPARE (E.G., F3/F4)
-nchans = 5:2:12; % VECTOR OF ALL ELECTRODES (LEFT & RIGHT) TO COMPARE
 EO_alphapower = zeros(numelectrodes, numsubjects); % EO ALPHA POWER
 EC_alphapower = zeros(numelectrodes, numsubjects); % EC ALPHA POWER
 EO_asymmetry = zeros(numelecpairs, numsubjects); % EO FAA SCORES
@@ -72,9 +71,9 @@ for s = 1:numsubjects
         'freqfac', 2, ...
         'plot', 'off');
     
-    % OUTPUT IS IN dB -> 10*log10(uV^2/Hz)
+    % OUTPUT IS IN dB / cm^2 -> 10*log10(uV^2/Hz) / cm^2
     
-    % CONVERT TO ALPHA POWER (uV^2/Hz) AND AVERAGE ACROSS FREQUENCIES
+    % CONVERT TO ALPHA POWER CSD (uV^2/Hz) / cm^2 AND AVERAGE ACROSS FREQUENCIES
     
     alphaindex = find(freqs >= 8 & freqs <= 13); % FREQUENCY RANGE 8-13 Hz
     
@@ -85,10 +84,10 @@ for s = 1:numsubjects
     end
     
     % CREATE MATRIX OF ASYMMETRY SCORES. ROWS ARE ELECTRODE PAIRS AF3-AF4,
-    % F3-F4, F5-F6, AND F7-F8. COLUMNS ARE SUBJECTS
+    % F3-F4, F5-F6, AND F7-F8. COLUMNS ARE SUBJECTS. RIGHT - LEFT
     for i = 1:numelecpairs
-        EO_asymmetry(i, s) = log(EO_alphapower(nchans(i),s)) - log(EO_alphapower(nchans(i)+1,s));
-        EC_asymmetry(i, s) = log(EC_alphapower(nchans(i),s)) - log(EC_alphapower(nchans(i)+1,s));
+        EO_asymmetry(i, s) = log(EO_alphapower(nchans_right(i),s)) - log(EO_alphapower(nchans_left(i),s));
+        EC_asymmetry(i, s) = log(EC_alphapower(nchans_right(i),s)) - log(EC_alphapower(nchans_left(i),s));
     end
  
     %% ANALYSIS OF LEFT AND RIGHT ELECTRODE CLUSTERS
@@ -123,9 +122,9 @@ for s = 1:numsubjects
         'freqfac', 2, ...
         'plot', 'off');
     
-    % OUTPUT IS IN dB -> 10*log10(uV^2/Hz)
+    % OUTPUT IS IN dB / cm^2 -> 10*log10(uV^2/Hz) / cm^2
     
-    % CONVERT TO ALPHA POWER (uV^2/Hz) AND AVERAGE ACROSS FREQUENCIES
+    % CONVERT TO ALPHA POWER CSD (uV^2/Hz) / cm^2 AND AVERAGE ACROSS FREQUENCIES
     
     % ALPHA POWER LEFT ELECTRODE CLUSTER FOR EO AND EC
     EO_alphapower_L(1,s) = mean(10.^(EO_spect_L(alphaindex)/10));
@@ -135,7 +134,7 @@ for s = 1:numsubjects
     EO_alphapower_R(1,s) = mean(10.^(EO_spect_R(alphaindex)/10));
     EC_alphapower_R(1,s) = mean(10.^(EC_spect_R(alphaindex)/10));
     
-    % ALPHA ASYMMETRY SCORES FOR EO AND EC
+    % ALPHA ASYMMETRY SCORES FOR EO AND EC. RIGHT - LEFT
     EO_asymmetry_clust(1,s) = log(EO_alphapower_R(1,s)) - log(EO_alphapower_L(1,s));
     EC_asymmetry_clust(1,s) = log(EC_alphapower_R(1,s)) - log(EC_alphapower_L(1,s));
     
