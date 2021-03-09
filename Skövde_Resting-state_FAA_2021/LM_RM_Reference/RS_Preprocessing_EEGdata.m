@@ -9,7 +9,7 @@ save_everything = 1;
 %% SET UP FILES AND FOLDERS
 
 % MAKE SURE EEGLAB IS IN PATH
-addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2020_0')
+addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2021.0')
 % WORKING DIRECTORY
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG'
 
