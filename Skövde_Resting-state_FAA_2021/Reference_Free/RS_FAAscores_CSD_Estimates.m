@@ -83,8 +83,8 @@ for s = 1:numsubjects
         EC_alphapower(electrode, s) = mean(10.^(EC_spect(electrode, alphaindex)/10));
     end
     
-    % CREATE MATRIX OF ASYMMETRY SCORES. ROWS ARE ELECTRODE PAIRS AF3-AF4,
-    % F3-F4, F5-F6, AND F7-F8. COLUMNS ARE SUBJECTS. RIGHT - LEFT
+    % CREATE MATRIX OF ASYMMETRY SCORES. ROWS ARE ELECTRODE PAIRS AF4-AF3,
+    % F4-F3, F6-F5, AND F8-F7. COLUMNS ARE SUBJECTS. RIGHT - LEFT
     for i = 1:numelecpairs
         EO_asymmetry(i, s) = log(EO_alphapower(nchans_right(i),s)) - log(EO_alphapower(nchans_left(i),s));
         EC_asymmetry(i, s) = log(EC_alphapower(nchans_right(i),s)) - log(EC_alphapower(nchans_left(i),s));
@@ -142,17 +142,17 @@ end
 
 % EXPORT FILES TO EXCEL AND SAVE IN STATISTICS FOLDER
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Statistics'
-xlswrite('FAAscores_CSD', EO_alphapower, 'EO Alpha Power', 'B2');
-xlswrite('FAAscores_CSD', EC_alphapower, 'EC Alpha Power', 'B2');
-xlswrite('FAAscores_CSD', EO_asymmetry, 'EO Asymmetry Scores', 'B2');
-xlswrite('FAAscores_CSD', EC_asymmetry, 'EC Asymmetry Scores', 'B2');
+xlswrite('FAAscores_CSD', EO_alphapower, 'EO Alpha Power');
+xlswrite('FAAscores_CSD', EC_alphapower, 'EC Alpha Power');
+xlswrite('FAAscores_CSD', EO_asymmetry, 'EO Asymmetry Scores');
+xlswrite('FAAscores_CSD', EC_asymmetry, 'EC Asymmetry Scores');
 
-xlswrite('FAAscores_CSD', EO_alphapower_L, 'EO Alpha Power Left Cluster', 'B2');
-xlswrite('FAAscores_CSD', EO_alphapower_R, 'EO Alpha Power right Cluster', 'B2');
-xlswrite('FAAscores_CSD', EC_alphapower_L, 'EC Alpha Power Left Cluster', 'B2');
-xlswrite('FAAscores_CSD', EC_alphapower_R, 'EC Alpha Power right Cluster', 'B2');
-xlswrite('FAAscores_CSD', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores', 'B2');
-xlswrite('FAAscores_CSD', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores', 'B2');
+xlswrite('FAAscores_CSD', EO_alphapower_L, 'EO Alpha Power Left Cluster');
+xlswrite('FAAscores_CSD', EO_alphapower_R, 'EO Alpha Power right Cluster');
+xlswrite('FAAscores_CSD', EC_alphapower_L, 'EC Alpha Power Left Cluster');
+xlswrite('FAAscores_CSD', EC_alphapower_R, 'EC Alpha Power right Cluster');
+xlswrite('FAAscores_CSD', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
+xlswrite('FAAscores_CSD', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
 
 
 % PLOT POWER SPECTRUM FOR ELECTRODE CLUSTERS. CREATE BETTER PLOTS WITH SPECTOPO LATER
