@@ -108,8 +108,8 @@ for s = 1:numsubjects
     EEG_EC.data = CSDdata_EC; % REPLACE EEG DATA WITH CSD ESTIMATES
     
     % SAVE CSD TRANSFORMED DATA. NOTE: DATA CONTAINS CSD ESTIMATES, NOT EEG SIGNALS
-    EEG_EO.setname = [subject '_EC_CSD_Estimates']; % NAME FOR DATASET MENU
-    EEG_EO = pop_saveset(EEG_EO, ...
+    EEG_EC.setname = [subject '_EC_CSD_Estimates']; % NAME FOR DATASET MENU
+    EEG_EC = pop_saveset(EEG_EC, ...
          'filename',[subject '_EC_CSD_Estimates.set'], ...
          'filepath', final);
 
