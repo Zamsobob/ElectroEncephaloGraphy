@@ -11,7 +11,7 @@ save_everything = 1;
 % MAKE SURE EEGLAB IS IN PATH
 addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2021.0');
 % WORKING DIRECTORY
-cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Raw_BIDS_ID'
+cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON'
 
 % SET EEGLAB PREFERENCES
 pop_editoptions('option_storedisk', 1);
@@ -55,11 +55,11 @@ subject_list = {'sub-010002', 'sub-010003', 'sub-010004', 'sub-010005', 'sub-010
 numsubjects = length(subject_list);
 
 % PATH TO THE EEG AND RAW FOLDERS
-eegfolder = 
+eegfolder = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON'
 rawfolder = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Raw_BIDS_ID\';
 
 %PATH TO LOCALIZER FILE (INCLUDES CHANNEL LOCATIONS)
-localizer = 
+localizer = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Localizer_BIDS_ID' % NOT SURE HERE
 
 % CREATE FOLDERS FOR THE PREPROCESSED DATA
 if~exist('EEG_CSD', 'dir')
