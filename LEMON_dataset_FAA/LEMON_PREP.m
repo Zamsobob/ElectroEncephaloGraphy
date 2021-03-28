@@ -91,7 +91,7 @@ end
 %% LOADING RAW EEG RESTING-STATE DATA AND RELEVANT FILES
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 1:numsubjects
+for s = 1%  11:50 %:numsubjects
     
     subject = subject_list{s};
     
@@ -113,11 +113,16 @@ for s = 1:numsubjects
     % RESAMPLE TO 250 HZ
     EEG = pop_resample(EEG, 250);
     
+    % FIND NON-STIMULUS (EO/EC) EVENTS AND REMOVE THEM REMOVE. 
+    allCodes = {EEG.event.code}';
+    Idx = strcmp(allCodes, 'Stimulus');
+    toRemove = find(Idx == 0); % FIND NON-STIMULUS EVENTS
+    EEG = pop_editeventvals(EEG,'delete', toRemove); % DELETE THEM (1:2 HERE)
+    
     %% PREPROCESSING
     
     % RUN PREP PIPELINE
-    EEG = pop_prepPipeline(EEG, struct('ignoreBoundaryEvents', true, ...
-        'lineNoiseChannels', 1:61, ...
+    EEG = pop_prepPipeline(EEG, struct('lineNoiseChannels', 1:61, ...
         'lineFrequencies', 50, ...
         'Fs', 250, ...
         'p', 0.01, ...
@@ -136,5 +141,6 @@ for s = 1:numsubjects
         EEG = pop_saveset(EEG, 'filename',[subject '_PREP'], ...
             'filepath', rsdir);
     end
+    
 end
 fprintf('\n\n\n**** LEMON PREP FINISHED ****\n\n\n');
