@@ -67,3 +67,5 @@ EC_tot <- EC_FP + EC_FC + EC_F + EC_FT
 EO_tot <- t(EO_tot)
 EC_tot <- t(EC_tot)
 t.test(EO_tot, EC_tot, paired = TRUE, alternative = "two.sided")
+
+# FAA as predictor instead of outcome? 
