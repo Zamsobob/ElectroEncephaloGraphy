@@ -143,10 +143,8 @@ for s = 1:numsubjects
     EEG.setname = [subject '_PREP']; % NAME FOR DATASET MENU
     
     % SAVE DATA
-    if (save_everything)
-        EEG = pop_saveset(EEG, 'filename',[subject '_PREP'], ...
-            'filepath', rsdir);
-    end
+    EEG = pop_saveset(EEG, 'filename',[subject '_PREP'], ...
+        'filepath', rsdir);
     
 end
 fprintf('\n\n\n**** LEMON PREP FINISHED ****\n\n\n');
