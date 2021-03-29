@@ -87,7 +87,7 @@ end
 %% LOADING RAW EEG RESTING-STATE DATA AND RELEVANT FILES
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 1 %:numsubjects
+for s = 1:numsubjects
     
     subject = subject_list{s};
     
@@ -101,12 +101,12 @@ for s = 1 %:numsubjects
     EEG = pop_runica(EEG, 'extended', 1, ...
         'interupt', 'on', ...
         'pca', length(EEG.chanlocs));
-    EEG.setname = [subject '_ICA']; % NAME FOR DATASET MENU
+    EEG.setname = [subject '_ICA_Weights']; % NAME FOR DATASET MENU
     EEG = eeg_checkset(EEG, 'ica');
       
     % SAVE DATA WITH ICA WEIGHTS
     if (save_everything)
-        EEG = pop_saveset(EEG, 'filename',[subject '_ICA.set'], ...
+        EEG = pop_saveset(EEG, 'filename',[subject '_ICA_Weights.set'], ...
             'filepath', rsdir);
     end
  
@@ -142,11 +142,11 @@ for s = 1 %:numsubjects
      
     % INTERPOLATE CHANNELS USING ORIGINAL CHANNEL LOCATIONS
     EEG = pop_interp(EEG, originalchanlocs, 'spherical');
-    EEG.setname = [subject '_Interp']; % NAME FOR DATASET MENU
+    EEG.setname = [subject '_ICA_Interp']; % NAME FOR DATASET MENU
      
     % SAVE ICA PROCESSED DATA. READY FOR EPOCHING
     EEG = pop_saveset(EEG, ...
-        'filename',[subject '_Preprocessed.set'], ...
+        'filename',[subject '_ICA_Interp.set'], ...
         'filepath', rsdir);
     
 end
