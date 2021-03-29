@@ -147,9 +147,9 @@ for s = 1:numsubjects
     
     % REMOVE BASELINE (MEAN OF THE WHOLE EPOCH)
     EEG_EC = pop_rmbase(EEG_EC, [],[]);
-    EEG_EC.setname = [subject '_EC_Clean_Epoch']; % NAME FOR DATASET MENU
+    EEG_EC.setname = [subject '_EC_Epoch']; % NAME FOR DATASET MENU
     EEG_EO = pop_rmbase(EEG_EO, [],[]);
-    EEG_EO.setname = [subject '_EO_Clean_Epoch']; % NAME FOR DATASET MENU
+    EEG_EO.setname = [subject '_EO_Epoch']; % NAME FOR DATASET MENU
     
     % SAVE EO DATA IN EO FOLDER AND EC DATA IN EC FOLDER
     EEG_EC = pop_saveset(EEG_EC, 'filename',[subject '_EC_Epoch.set'], ...
