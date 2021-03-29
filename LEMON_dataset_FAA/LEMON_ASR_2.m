@@ -87,7 +87,7 @@ end
 %% LOADING RAW EEG RESTING-STATE DATA AND RELEVANT FILES
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 1 %:numsubjects
+for s = 1:numsubjects
     
     subject = subject_list{s};
     
