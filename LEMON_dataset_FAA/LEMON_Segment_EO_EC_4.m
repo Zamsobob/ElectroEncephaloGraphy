@@ -137,7 +137,7 @@ for s = 1:numsubjects
     EEG_EC = pop_editeventvals(EEG_EC,'delete', 1:length(EEG_EC.event));
     EEG_EO = pop_editeventvals(EEG_EO,'delete', 1:length(EEG_EO.event)); % EVENTS? EPOCHS?
     
-     % CREATE EO AND EC EPOCHS OF 2.048 SEC, WITH 75% OVERLAP (0.512 s RECURRENCE) 
+    % CREATE EO AND EC EPOCHS OF 2.048 SEC, WITH 75% OVERLAP (0.512 s RECURRENCE) 
     EEG_EC = eeg_regepochs(EEG_EC, 'recurrence', 0.512, ...
         'limits', [-1.024 1.024], ...
         'rmbase', NaN); 
@@ -152,16 +152,10 @@ for s = 1:numsubjects
     EEG_EO.setname = [subject '_EO_Clean_Epoch']; % NAME FOR DATASET MENU
     
     % SAVE EO DATA IN EO FOLDER AND EC DATA IN EC FOLDER
-    EEG_EC = pop_saveset(EEG_EC, 'filename',[subject '_EC_Clean_Epoch.set'], ...
+    EEG_EC = pop_saveset(EEG_EC, 'filename',[subject '_EC_Epoch.set'], ...
         'filepath', ecdir);
-     EEG_EO = pop_saveset(EEG_EO, 'filename',[subject '_EO_Clean_Epoch.set'], ...
+     EEG_EO = pop_saveset(EEG_EO, 'filename',[subject '_EO_Epoch.set'], ...
         'filepath', eodir);
     
 end
 fprintf('\n\n\n**** LEMON SEGMENT FINISHED ****\n\n\n');
-
-%---------------
-    % REMOVE ALL THE UNECESSARY FOLDER CREATING IN PREVIOUS SCRIPTS (E.G.
-    % EO EC FOLDERS IN SCRIPT 1 ETC)
-    
-    % EPOCH REMOVAL AFTER AS WELL
