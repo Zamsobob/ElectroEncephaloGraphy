@@ -1,2 +1,2 @@
 # ElectroEncephaloGraphy
-Matlab scripts for EEG data
+Scripts for analysing EEG data
