@@ -4,7 +4,7 @@ clc;
 
 % SET VARIABLE TO 1 TO SAVE INTERMEDIATE STEPS. SET TO 0 TO SAVE
 % ONLY THE NECESSARY FILES (RAW RS, EPOCHED EO AND EC, FINAL).
-save_everything = 1;
+save_everything = 0;
 
 %% SET UP FILES AND FOLDERS
 
@@ -91,7 +91,7 @@ end
 %% LOADING RAW EEG RESTING-STATE DATA AND RELEVANT FILES
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 1%  11:50 %:numsubjects
+for s = 1:numsubjects
     
     subject = subject_list{s};
     
@@ -105,7 +105,7 @@ for s = 1%  11:50 %:numsubjects
     EEG = pop_select(EEG, 'nochannel', 17);
     
     % IMPORT CHANNEL LOCATIONS WITH FCz AS ONLINE REFERENCE
-    EEG=pop_chanedit(EEG, 'load',{[localizer 'Channel_Loc_61.ced'], ...
+    EEG = pop_chanedit(EEG, 'load',{[localizer 'Channel_Loc_61.ced'], ...
         'filetype', 'autodetect'}, ...
         'setref', {'1:62', 'FCz'}, ...
         'changefield', {62, 'datachan', 0});
@@ -113,11 +113,17 @@ for s = 1%  11:50 %:numsubjects
     % RESAMPLE TO 250 HZ
     EEG = pop_resample(EEG, 250);
     
-    % FIND NON-STIMULUS (EO/EC) EVENTS AND REMOVE THEM REMOVE. 
+    % FIND NON-STIMULUS (EO/EC) EVENTS AND REMOVE THEM 
     allCodes = {EEG.event.code}';
     Idx = strcmp(allCodes, 'Stimulus');
     toRemove = find(Idx == 0); % FIND NON-STIMULUS EVENTS
     EEG = pop_editeventvals(EEG,'delete', toRemove); % DELETE THEM (1:2 HERE)
+    
+    % SAVE RS DATA
+    if (save_everything)
+    EEG = pop_saveset(EEG, 'filename',[subject '_RS.set'], ...
+        'filepath', rsdir);
+    end
     
     %% PREPROCESSING
     
