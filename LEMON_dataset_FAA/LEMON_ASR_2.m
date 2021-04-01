@@ -76,7 +76,7 @@ end
 ecdir = [ppfolder 'EEG_RS\RS_EC'];
 
 if ~exist('EEG_Final', 'dir')
-    mkdir EEG_Preprocessed EEG_Final
+    mkdir EEG_Final
 end
 final = [ppfolder 'EEG_Final'];
 
