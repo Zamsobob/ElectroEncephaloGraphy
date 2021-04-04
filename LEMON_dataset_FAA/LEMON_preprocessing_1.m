@@ -332,14 +332,12 @@ for s = 1:numsubjects
         'filename',[subject '_EC_Preprocessed.set'], ...
         'filepath', final);
     
-    % STORE NUMBER OF EPOCHS FOR EACH SUBJECT
-    numepochs(s) = {length(EEG.epoch)};
+    fprintf('\n\n\n**** subject ****\n\n\n');
     
 end
 
-% SAVE INTERPOLATED CHANNELS AND NUMBER OF EPOCHS AS .MAT IN FOLDER Saved_Variables
+% SAVE INTERPOLATED CHANNELS AS .MAT IN FOLDER Saved_Variables
 cd 'Saved_Variables';
 save InterpolatedChannels.mat interchans
-save NumberOfEpochs.mat numepochs
 
 fprintf('\n\n\n**** LEMON PREPROCESSING FINISHED ****\n\n\n');
