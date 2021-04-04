@@ -131,13 +131,18 @@ parfor s = 1:numsubjects % CHANGE TO FOR IF PARALLEL COMPUTING TOOLBOX IS NOT IN
     % LOW-PASS FILTER 45 HZ TO SUPPRESS POSSIBLE LINE NOISE. 75 points.
     % CUTOFF FREQUENCY (~6dB): 50.625 Hz. ZERO-PHASE, NON-CAUSAL (FIRFILT)
     EEG = pop_eegfiltnew(EEG, 'hicutoff',45);
+    EEG.setname = [subject '_Filter']; % NAME FOR DATASET MENU
    
     % SAVE FILTERED DATA
     if (save_everything)
     EEG = pop_saveset(EEG, 'filename',[subject '_Filt'], ...
         'filepath', rsdir);
     end
-
+    
+    % SAVE ORIGINAL DATA BEFORE REMOVING BAD CHANNELS
+    % originalchanlocs = EEG.chanlocs; % FOR INTERPOLATION LATER
+    oldchans = {EEG.chanlocs.labels};
+    
     % CLEAN_RAW DATA WITH CHANNEL REMOVAL AND ASR
     EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion', 5, ...
     'ChannelCriterion', 0.8, ...
@@ -150,6 +155,11 @@ parfor s = 1:numsubjects % CHANGE TO FOR IF PARALLEL COMPUTING TOOLBOX IS NOT IN
     'Distance', 'Euclidian', ...
     'WindowCriterionTolerances',[-Inf 7] );
     EEG.setname = [subject '_ASR']; % NAME FOR DATASET MENU
+    
+    % STORE REMOVED CHANNELS FOR REVIEW
+    newchans = {EEG.chanlocs.labels}; % SAVE NEW EO CHANS AFTER CLEAN
+    chandiff = setdiff(oldchans, newchans); % DIFFERENCE OLD AND NEW CHANNELS
+    interchans(s) = {chandiff}; % STORE LIST OF INTERPOLATED CHANNELS FOR EACH SUBJECT
 
     % SAVE DATA
     if (save_everything)
@@ -322,6 +332,14 @@ for s = 1:numsubjects
         'filename',[subject '_EC_Preprocessed.set'], ...
         'filepath', final);
     
+    % STORE NUMBER OF EPOCHS FOR EACH SUBJECT
+    numepochs(s) = {length(EEG.epoch)};
+    
 end
+
+% SAVE INTERPOLATED CHANNELS AND NUMBER OF EPOCHS AS .MAT IN FOLDER Saved_Variables
+cd 'Saved_Variables';
+save InterpolatedChannels.mat interchans
+save NumberOfEpochs.mat numepochs
 
 fprintf('\n\n\n**** LEMON PREPROCESSING FINISHED ****\n\n\n');
