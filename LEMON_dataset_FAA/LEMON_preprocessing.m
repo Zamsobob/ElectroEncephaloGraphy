@@ -80,7 +80,7 @@ end
 ecdir = [ppfolder 'EEG_RS\RS_EC'];
 
 if ~exist('EEG_Final', 'dir')
-    mkdir EEG_Preprocessed EEG_Final
+    mkdir EEG_Final
 end
 final = [ppfolder 'EEG_Final'];
 
@@ -91,7 +91,7 @@ end
 %% LOADING RAW EEG RESTING-STATE DATA AND RELEVANT FILES
 
 % LOOP THROUGH ALL SUBJECTS
-parfor s = 1:numsubjects % CHANGE TO NORMAL FOR-LOOP IF PARALLEL COMPUTING TOOLBOX IS NOT INSTALLED
+parfor s = 1:numsubjects % CHANGE TO FOR IF PARALLEL COMPUTING TOOLBOX IS NOT INSTALLED
     
     subject = subject_list{s};
     
@@ -101,19 +101,16 @@ parfor s = 1:numsubjects % CHANGE TO NORMAL FOR-LOOP IF PARALLEL COMPUTING TOOLB
     % IMPORT RAW DATA
     EEG = pop_loadbv(subjectfolder, [subject '.vhdr']);
     
-    % REMOVE EOG CHANNEL
-    EEG = pop_select(EEG, 'nochannel', 17);
-    
     % IMPORT CHANNEL LOCATIONS WITH FCz AS ONLINE REFERENCE
-    EEG = pop_chanedit(EEG, 'load',{[localizer 'Channel_Loc_61.ced'], ...
+    EEG = pop_chanedit(EEG, 'load',{[localizer 'Channel_Loc_62_EOG.ced'], ...
         'filetype', 'autodetect'}, ...
-        'setref', {'1:62', 'FCz'}, ...
-        'changefield', {62, 'datachan', 0});
+        'setref', {'1:63', 'FCz'}, ...
+        'changefield', {63, 'datachan', 0});
 
     % RESAMPLE TO 250 HZ
     EEG = pop_resample(EEG, 250);
     
-    % FIND NON-STIMULUS (EO/EC) EVENTS AND REMOVE THEM 
+    % FIND NON-STIMULUS (NOT EO/EC) EVENTS AND REMOVE THEM 
     allCodes = {EEG.event.code}';
     Idx = strcmp(allCodes, 'Stimulus');
     toRemove = find(Idx == 0); % FIND NON-STIMULUS EVENTS
@@ -129,7 +126,7 @@ parfor s = 1:numsubjects % CHANGE TO NORMAL FOR-LOOP IF PARALLEL COMPUTING TOOLB
     
     % HIGH-PASS FILTER 1 HZ. 827 POINTS. CUTOFF FREQUENCY (~6dB): 0.5 Hz.
     % ZERO-PHASE. NON-CAUSAL (FIRFILT).
-    EEG = pop_eegfiltnew(EEG, 'locutoff',1,'plotfreqz',0);
+    EEG = pop_eegfiltnew(EEG, 'locutoff',1);
     
     % LOW-PASS FILTER 45 HZ TO SUPPRESS POSSIBLE LINE NOISE. 75 points.
     % CUTOFF FREQUENCY (~6dB): 50.625 Hz. ZERO-PHASE, NON-CAUSAL (FIRFILT)
@@ -140,9 +137,6 @@ parfor s = 1:numsubjects % CHANGE TO NORMAL FOR-LOOP IF PARALLEL COMPUTING TOOLB
     EEG = pop_saveset(EEG, 'filename',[subject '_Filt'], ...
         'filepath', rsdir);
     end
-    
-     % SAVE ORIGINAL DATA BEFORE REMOVING BAD CHANNELS
-    originalchanlocs = EEG.chanlocs; % FOR INTERPOLATION LATER
 
     % CLEAN_RAW DATA WITH CHANNEL REMOVAL AND ASR
     EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion', 5, ...
@@ -175,7 +169,21 @@ parfor s = 1:numsubjects % CHANGE TO NORMAL FOR-LOOP IF PARALLEL COMPUTING TOOLB
         EEG = pop_saveset(EEG, 'filename',[subject '_ICA_Weights.set'], ...
             'filepath', rsdir);
     end
- 
+end
+    
+for s = 1:numsubjects
+    
+    subject = subject_list{s};
+    
+    % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
+    subjectfolder = [rawfolder subject '\'];
+    
+    EEG = pop_loadset('filename',[subject '_Filt.set'],'filepath', rsdir);
+    originalchanlocs = EEG.chanlocs; % FOR INTERPOLATION LATER
+    
+    % LOAD FILES WITH ICA WEIGHTS
+    EEG = pop_loadset('filename',[subject '_ICA_Weights.set'],'filepath', rsdir);
+    
     % RUN ICLABEL(Pion-Tonachini et al., 2019) TO LABEL COMPONENTS
     EEG = pop_iclabel(EEG, 'default');
      
@@ -301,21 +309,19 @@ parfor s = 1:numsubjects % CHANGE TO NORMAL FOR-LOOP IF PARALLEL COMPUTING TOOLB
         6, 2, 0, 1, 0, [], 0);
     EEG_EC = pop_jointprob(EEG_EC, 1, [1:length(EEG_EC.chanlocs)], ...
         6, 2, 0, 1, 0, [], 0);
-    EEG_EO.setname = [subject '_EO_epochrej']; % NAME FOR DATASET MENU
-    EEG_EC.setname = [subject '_EC_epochrej']; % NAME FOR DATASET MENU
+    EEG_EO.setname = [subject '_EO_Preprocessed']; % NAME FOR DATASET MENU
+    EEG_EC.setname = [subject '_EC_Preprocessed']; % NAME FOR DATASET MENU
     EEG_EO = eeg_checkset(EEG_EO);
     EEG_EC = eeg_checkset(EEG_EC);
      
     % SAVE DATA AFTER EPOCH REJECTION
-    if (save_everything)
-        EEG_EO = pop_saveset(EEG_EO, ...
-            'filename',[subject '_EO_Preprocessed.set'], ...
-            'filepath', final);
-        EEG_EC = pop_saveset(EEG_EC, ...
-            'filename',[subject '_EC_Preprocessed.set'], ...
-            'filepath', final);
-    end
-
+    EEG_EO = pop_saveset(EEG_EO, ...
+        'filename',[subject '_EO_Preprocessed.set'], ...
+        'filepath', final);
+    EEG_EC = pop_saveset(EEG_EC, ...
+        'filename',[subject '_EC_Preprocessed.set'], ...
+        'filepath', final);
     
 end
+
 fprintf('\n\n\n**** LEMON PREPROCESSING FINISHED ****\n\n\n');
