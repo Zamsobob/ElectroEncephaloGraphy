@@ -84,7 +84,7 @@ for s = 1:numsubjects
     end
     
     % CREATE MATRIX OF ASYMMETRY SCORES. ROWS ARE ELECTRODE PAIRS AF4-AF3,
-    % F4-F3, F6-F5, AND F8-F7. COLUMNS ARE SUBJECTS. RIGHT - LEFT
+    % F4-F3, F6-F5, AND F8-F7. COLUMNS ARE SUBJECTS
     for i = 1:numelecpairs
         EO_asymmetry(i, s) = log(EO_alphapower(nchans_right(i),s)) - log(EO_alphapower(nchans_left(i),s));
         EC_asymmetry(i, s) = log(EC_alphapower(nchans_right(i),s)) - log(EC_alphapower(nchans_left(i),s));
@@ -134,23 +134,28 @@ for s = 1:numsubjects
     EO_alphapower_R(1,s) = mean(10.^(EO_spect_R(alphaindex)/10));
     EC_alphapower_R(1,s) = mean(10.^(EC_spect_R(alphaindex)/10));
     
-    % ALPHA ASYMMETRY SCORES FOR EO AND EC. RIGHT - LEFT
+    % ALPHA ASYMMETRY SCORES FOR EO AND EC
     EO_asymmetry_clust(1,s) = log(EO_alphapower_R(1,s)) - log(EO_alphapower_L(1,s));
     EC_asymmetry_clust(1,s) = log(EC_alphapower_R(1,s)) - log(EC_alphapower_L(1,s));
     
 end
+% SUBJECTS AS ROWS
+EO_asymmetry = EO_asymmetry';
+EC_asymmetry = EC_asymmetry';
+EO_asymmetry_clust = EO_asymmetry_clust';
+EC_asymmetry_clust = EC_asymmetry_clust';
 
 % EXPORT FILES TO EXCEL AND SAVE IN STATISTICS FOLDER
 cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Statistics'
-xlswrite('FAAscores_CSD', EO_alphapower, 'EO Alpha Power');
-xlswrite('FAAscores_CSD', EC_alphapower, 'EC Alpha Power');
+% xlswrite('FAAscores_CSD', EO_alphapower, 'EO Alpha Power');
+% xlswrite('FAAscores_CSD', EC_alphapower, 'EC Alpha Power');
 xlswrite('FAAscores_CSD', EO_asymmetry, 'EO Asymmetry Scores');
 xlswrite('FAAscores_CSD', EC_asymmetry, 'EC Asymmetry Scores');
 
-xlswrite('FAAscores_CSD', EO_alphapower_L, 'EO Alpha Power Left Cluster');
-xlswrite('FAAscores_CSD', EO_alphapower_R, 'EO Alpha Power right Cluster');
-xlswrite('FAAscores_CSD', EC_alphapower_L, 'EC Alpha Power Left Cluster');
-xlswrite('FAAscores_CSD', EC_alphapower_R, 'EC Alpha Power right Cluster');
+% xlswrite('FAAscores_CSD', EO_alphapower_L, 'EO Alpha Power Left Cluster');
+% xlswrite('FAAscores_CSD', EO_alphapower_R, 'EO Alpha Power right Cluster');
+% xlswrite('FAAscores_CSD', EC_alphapower_L, 'EC Alpha Power Left Cluster');
+% xlswrite('FAAscores_CSD', EC_alphapower_R, 'EC Alpha Power right Cluster');
 xlswrite('FAAscores_CSD', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
 xlswrite('FAAscores_CSD', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
 
