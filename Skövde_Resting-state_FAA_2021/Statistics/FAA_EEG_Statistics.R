@@ -1,14 +1,9 @@
-# BEST PRACTISE PREPARING DATA FOR R. DO IT ON SCHOOL LOG IN IF I NEED EXCEL.
+## STATISTICAL ANALYSIS OF FRONTAL ALPHA ASYMMETRY (FAA) DATA
 
-## LAPLACIAN TRANSFORMED DATA
-
-# LOAD REQUIRE PACKAGES
+# LOAD REQUIRED PACKAGES
 library(readxl)
 library(dplyr)
-# if(!require(devtools)) install.packages("devtools")
-# devtools::install_github("kassambara/ggpubr")
-# install.packages("ggpubr")
-# library(ggpubr)
+library(ggpubr)
 
 #---------------------------
 # IMPORT EO FRONTAL ASYMMETRY SCORES
@@ -49,6 +44,12 @@ shapiro.test(EC_FAA[,2])
 shapiro.test(EC_FAA[,3])
 shapiro.test(EC_FAA[,4]) # NOT NORMAL
 
+# VARIANCES SIMILAR? ASSUMPTION FOR T-TEST
+var(EO_FAA[,1]) - var(EC_FAA[,1])
+var(EO_FAA[,2]) - var(EC_FAA[,2])
+var(EO_FAA[,3]) - var(EC_FAA[,3])
+var(EO_FAA[,2]) - var(EC_FAA[,2])
+
 # PAIRED T-TESTS TO TEST DIFFERENCE BETWEEN EO AND EC FOR EACH PAIR. ALL NS
 t.test(EO_FAA[,1], EC_FAA[,1], paired = TRUE, alternative = "two.sided")
 t.test(EO_FAA[,2], EC_FAA[,2], paired = TRUE, alternative = "two.sided")
@@ -58,15 +59,23 @@ t.test(EO_FAA[,3], EC_FAA[,3], paired = TRUE, alternative = "two.sided")
 wilcox.test(EO_FAA[,4], EC_FAA[,4], paired = TRUE, alternative = "two.sided")
 
 # HOW TO ADD THE EPOCHS TOGETHER? MATLAB? EO + EC / 2 ?
+FAA <- (EO_FAA + EC_FAA) /2
 
+#---------------------------
+# IMPORT BEHAVIOURAL DATA
+exceldirBIS <- "D:/FAA_Study_2021/Skovde/Skovde_EEG/EEG_Statistics/Behavioural_Data.xls"
+behavioural <- read_excel(exceldirBIS, 1, col_names = TRUE);
+behavioural <- as.matrix(behavioural)
+View(behavioural)
+
+FAAdata <- cbind(FAA, behavioural)
+View(FAAdata)
 
 # EXTRACT INDIVIDUAL ASYMMETRY SCORES. DO I NEED TO?
-#EO_FP <- EO_FAA[,1] # eyes-open frontopolar (AF4 - AF3)
-#EO_FC <- EO_FAA[,2]   # eyes-open frontocentral (F4 - F3)
-#EO_F <- EO_FAA[,3]   # eyes-open frontal (F6 - F5)
-#EO_FT <- EO_FAA[,4]   # eyes-open frontotemporal (F8 - F7)
+FP <- FAAdata[,1]   # Frontopolar (AF4 - AF3)
+FC <- FAAdata[,2]   # Frontocentral (F4 - F3)
+FR <- FAAdata[,3]   # Frontal (F6 - F5)
+FT <- FAAdata[,4]   # Frontotemporal (F8 - F7)
 
-#EC_FP <- EC_FAA[1,] # eyes-open frontopolar (AF4 - AF3)
-#EC_FC <- EC_FAA[2,] # eyes-open frontocentral (F4 - F3)
-#EC_F <- EC_FAA[3,]  # eyes-open frontal (F6 - F5)
-#EC_FT <- EC_FAA[4,]  # eyes-open frontotemporal (F8 - F7)
+#---------------------------
+# REGRESSION
