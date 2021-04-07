@@ -35,13 +35,13 @@ View(EC_FAA)
 #---------------------------
 # NORMALITY TESTS USING SHAPIRO-WILKS
 shapiro.test(EO_FAA[,1])
-shapiro.test(EO_FAA[,2])
-shapiro.test(EO_FAA[,3])
+shapiro.test(EO_FAA[,2]) # NOT NORMAL
+shapiro.test(EO_FAA[,3]) # NOT NORMAL
 shapiro.test(EO_FAA[,4]) # NOT NORMAL
 
 shapiro.test(EC_FAA[,1])
-shapiro.test(EC_FAA[,2])
-shapiro.test(EC_FAA[,3])
+shapiro.test(EC_FAA[,2]) # NOT NORMAL
+shapiro.test(EC_FAA[,3]) # NOT NORMAL
 shapiro.test(EC_FAA[,4]) # NOT NORMAL
 
 # VARIANCES SIMILAR? ASSUMPTION FOR T-TEST
@@ -52,11 +52,12 @@ var(EO_FAA[,2]) - var(EC_FAA[,2])
 
 # PAIRED T-TESTS TO TEST DIFFERENCE BETWEEN EO AND EC FOR EACH PAIR. ALL NS
 t.test(EO_FAA[,1], EC_FAA[,1], paired = TRUE, alternative = "two.sided")
-t.test(EO_FAA[,2], EC_FAA[,2], paired = TRUE, alternative = "two.sided")
-t.test(EO_FAA[,3], EC_FAA[,3], paired = TRUE, alternative = "two.sided")
 
-# WILCOXON SIGNED-RANK TEST FOR THE NON-NORMAL DISTRIBUTED VARIABLES (F8-F7). NS
-wilcox.test(EO_FAA[,4], EC_FAA[,4], paired = TRUE, alternative = "two.sided")
+# TWO-SAMPLE WILCOXON SIGNED-RANK TEST (Hollander & Wolfe (1973), 69f) FOR THE
+# NON-NORMAL DISTRIBUTED VARIABLES (F8-F7). NS
+wilcox.test(EO_FAA[,2], EC_FAA[,2], paired = TRUE, alternative = "two.sided", conf.int = TRUE)
+wilcox.test(EO_FAA[,3], EC_FAA[,3], paired = TRUE, alternative = "two.sided", conf.int = TRUE)
+wilcox.test(EO_FAA[,4], EC_FAA[,4], paired = TRUE, alternative = "two.sided", conf.int = TRUE)
 
 # HOW TO ADD THE EPOCHS TOGETHER? MATLAB? EO + EC / 2 ?
 FAA <- (EO_FAA + EC_FAA) /2
@@ -71,11 +72,14 @@ View(behavioural)
 FAAdata <- cbind(FAA, behavioural)
 View(FAAdata)
 
-# EXTRACT INDIVIDUAL ASYMMETRY SCORES. DO I NEED TO?
+# EXTRACT INDIVIDUAL ASYMMETRY SCORES
 FP <- FAAdata[,1]   # Frontopolar (AF4 - AF3)
 FC <- FAAdata[,2]   # Frontocentral (F4 - F3)
 FR <- FAAdata[,3]   # Frontal (F6 - F5)
 FT <- FAAdata[,4]   # Frontotemporal (F8 - F7)
 
 #---------------------------
-# REGRESSION
+# REGRESSION - MIXED-EFFECTS MODELS. ALSO KNOWN AS MULTILEVEL MODELS, 
+# HIERARCHICAL MODELS, AND RANDOM COEFFICIENTS MODELS
+
+# RESIDUAL ANALYSIS
