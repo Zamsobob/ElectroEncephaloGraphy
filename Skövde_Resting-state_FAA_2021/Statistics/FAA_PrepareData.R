@@ -1,4 +1,5 @@
 ## IMPORTING FRONTAL ASYMMETRY SCORES AND BEHAVIOURAL DATA
+##### NOTE - THE QUESTIONNAIRE SCORES ARE NOT REAL AT THE MOMENT #####
 
 # LOAD REQUIRED PACKAGES
 library(readxl)
@@ -49,8 +50,6 @@ colnames(FAA) <- c("AF4AF3", "F4F3", "F6F5", "F8F7")
 # IMPORT BEHAVIOURAL DATA
 behavioural <- read_excel(exceldirBIS, 1, col_names = TRUE);
 behavioural <- data.frame(behavioural)
-## FOR GENDER, 0 = FEMALE, 1 = MALE
-behavioural$Gender <- factor(behavioural$Gender)
 
 # COMBINE FAA-SCORES AND BEHAVIOURAL DATA INTO ONE DATA.FRAME
 Data <- cbind(FAA, behavioural)
