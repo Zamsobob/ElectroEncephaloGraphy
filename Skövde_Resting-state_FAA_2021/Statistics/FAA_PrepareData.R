@@ -50,6 +50,8 @@ colnames(FAA) <- c("AF4AF3", "F4F3", "F6F5", "F8F7")
 # IMPORT BEHAVIOURAL DATA
 behavioural <- read_excel(exceldirBIS, 1, col_names = TRUE);
 behavioural <- data.frame(behavioural)
+BAS <- (behavioural[,1] + behavioural[,2] + behavioural[,3]) / 3 # SEE shorturl.at/aixX7
+behavioural <- cbind(BAS, behavioural)
 
 # COMBINE FAA-SCORES AND BEHAVIOURAL DATA INTO ONE DATA.FRAME
 Data <- cbind(FAA, behavioural)
