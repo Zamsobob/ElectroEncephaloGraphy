@@ -55,7 +55,8 @@ behavioural$Gender <- factor(behavioural$Gender)
 # COMBINE FAA-SCORES AND BEHAVIOURAL DATA INTO ONE DATA.FRAME
 Data <- cbind(FAA, behavioural)
 str(Data)
-View(Data)
 
 # EXPORT TO EXCEL FILE
 write_xlsx(Data, path = exportdir, col_names=TRUE, format_headers=TRUE)
+
+## END OF SCRIPT
