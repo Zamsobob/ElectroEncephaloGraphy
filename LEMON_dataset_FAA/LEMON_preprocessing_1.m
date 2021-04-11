@@ -3,7 +3,7 @@ clear;
 clc;
 
 % SET VARIABLE TO 1 TO SAVE INTERMEDIATE STEPS. SET TO 0 TO SAVE
-% ONLY THE NECESSARY FILES (RAW RS, EPOCHED EO AND EC, FINAL).
+% ONLY THE NECESSARY FILES
 save_everything = 1;
 
 %% SET UP FILES AND FOLDERS
@@ -91,7 +91,7 @@ end
 %% LOADING RAW EEG RESTING-STATE DATA AND RELEVANT FILES
 
 % LOOP THROUGH ALL SUBJECTS
-parfor s = 1:numsubjects % CHANGE TO FOR IF PARALLEL COMPUTING TOOLBOX IS NOT INSTALLED
+parfor s = 1:numsubjects % PARALLEL COMPUTING TOOLBOX
     
     subject = subject_list{s};
     
@@ -140,7 +140,6 @@ parfor s = 1:numsubjects % CHANGE TO FOR IF PARALLEL COMPUTING TOOLBOX IS NOT IN
     end
     
     % SAVE ORIGINAL DATA BEFORE REMOVING BAD CHANNELS
-    % originalchanlocs = EEG.chanlocs; % FOR INTERPOLATION LATER
     oldchans = {EEG.chanlocs.labels};
     
     % CLEAN_RAW DATA WITH CHANNEL REMOVAL AND ASR
@@ -180,164 +179,9 @@ parfor s = 1:numsubjects % CHANGE TO FOR IF PARALLEL COMPUTING TOOLBOX IS NOT IN
             'filepath', rsdir);
     end
 end
-    
-for s = 1:numsubjects
-    
-    subject = subject_list{s};
-    
-    % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
-    subjectfolder = [rawfolder subject '\'];
-    
-    EEG = pop_loadset('filename',[subject '_Filt.set'],'filepath', rsdir);
-    originalchanlocs = EEG.chanlocs; % FOR INTERPOLATION LATER
-    
-    % LOAD FILES WITH ICA WEIGHTS
-    EEG = pop_loadset('filename',[subject '_ICA_Weights.set'],'filepath', rsdir);
-    
-    % RUN ICLABEL(Pion-Tonachini et al., 2019) TO LABEL COMPONENTS
-    EEG = pop_iclabel(EEG, 'default');
-     
-    % MARK COMPONENTS WITH >= 90% PROBABILITY OF BEING NON-BRAIN COMPONENTS
-    EEG = pop_icflag(EEG, ...
-        [NaN NaN;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1]);
-    EEG.setname = [subject '_ICA_marked']; % NAME FOR DATASET MENU
-     
-    % SAVE DATA WITH COMPONENTS MARKED FOR REMOVAL
-    if (save_everything)
-        EEG = pop_saveset(EEG, ...
-            'filename',[subject '_ICA_Marked.set'], ...
-            'filepath', rsdir);
-    end
-     
-    % REMOVE SELECTED COMPONENTS
-    EEG = pop_subcomp(EEG, ...
-        [find(EEG.reject.gcompreject == 1)], ...
-        0);
-    EEG.setname = [subject '_ICA_Removed']; % NAME FOR DATASET MENU
-     
-    % SAVE DATA WITH COMPONENTS REMOVED
-    if (save_everything)
-        EEG = pop_saveset(EEG, ...
-            'filename',[subject '_ICA_Removed.set'], ...
-            'filepath', rsdir);
-    end
-     
-    %% POST ICA
-     
-    % INTERPOLATE CHANNELS USING ORIGINAL CHANNEL LOCATIONS
-    EEG = pop_interp(EEG, originalchanlocs, 'spherical');
-    EEG.setname = [subject '_Interp']; % NAME FOR DATASET MENU
-     
-    % SAVE ICA PROCESSED DATA. READY FOR EPOCHING
-    EEG = pop_saveset(EEG, ...
-        'filename',[subject '_Interp.set'], ...
-        'filepath', rsdir);
-    
-    %% EYES CLOSED (EC) SEGMENTS
-    
-    % EXTRACT EC EPOCHS
-    EEG_EC = pop_epoch(EEG, {'S210'}, [0 2], ...
-        'newname', [subject '_EC'], ...
-        'epochinfo', 'yes');
-    
-    % CONCATENATE THE EC EPOCHS
-    EEG_EC = pop_epoch2continuous(EEG_EC, 'Warning', 'off');
-    EEG_EC.setname = [subject '_EC']; % NAME FOR DATASET MENU
-
-    % SAVE IN EC FOLDER
-    if (save_everything)
-        EEG_EC = pop_saveset(EEG_EC, 'filename',[subject '_EC.set'], ...
-            'filepath', ecdir);
-    end
-    
-    %% EYES OPEN (EO) SEGMENTS
-    
-    % EXTRACT EO EPOCHS
-    EEG_EO = pop_epoch(EEG, {'S200'}, [0 2], ...
-        'newname', [subject '_EO'], ...
-        'epochinfo', 'yes');
-
-    % CONCATENATE THE EO EPOCHS
-    EEG_EO = pop_epoch2continuous(EEG_EO, 'Warning', 'off');
-    EEG_EO.setname = [subject '_EO']; % NAME FOR DATASET MENU
-
-    % SAVE IN EC FOLDER
-    if (save_everything)
-        EEG_EO = pop_saveset(EEG_EO, 'filename',[subject '_EO.set'], ...
-            'filepath', eodir);
-    end
-    
-    %% EPOCHING
-    
-    % REMOVE ALL EVENTS AND USE REGEPOCHS TO MAKE MY OWN (OVERLAPPING)
-    EEG_EC = pop_editeventvals(EEG_EC,'delete', 1:length(EEG_EC.event));
-    EEG_EO = pop_editeventvals(EEG_EO,'delete', 1:length(EEG_EO.event));
-    
-    % CREATE EO AND EC EPOCHS OF 2.048 SEC, WITH 75% OVERLAP (0.512 s RECURRENCE) 
-    EEG_EC = eeg_regepochs(EEG_EC, 'recurrence', 0.512, ...
-        'limits', [-1.024 1.024], ...
-        'rmbase', NaN); 
-    EEG_EO = eeg_regepochs(EEG_EO, 'recurrence', 0.512, ...
-        'limits', [-1.024 1.024], ...
-        'rmbase', NaN);
-    
-    % REMOVE BASELINE (MEAN OF THE WHOLE EPOCH)
-    EEG_EC = pop_rmbase(EEG_EC, [],[]);
-    EEG_EC.setname = [subject '_EC_Epoch']; % NAME FOR DATASET MENU
-    EEG_EO = pop_rmbase(EEG_EO, [],[]);
-    EEG_EO.setname = [subject '_EO_Epoch']; % NAME FOR DATASET MENU
-    
-    % SAVE EO DATA IN EO FOLDER AND EC DATA IN EC FOLDER
-    EEG_EC = pop_saveset(EEG_EC, 'filename',[subject '_EC_Epoch.set'], ...
-        'filepath', ecdir);
-    EEG_EO = pop_saveset(EEG_EO, 'filename',[subject '_EO_Epoch.set'], ...
-        'filepath', eodir);
-    
-    % LOAD EPOCHED DATA
-    EEG_EO = pop_loadset('filename',[subject '_EO_Epoch.set'],'filepath', eodir);
-    EEG_EC = pop_loadset('filename',[subject '_EC_Epoch.set'],'filepath', ecdir);
-    
-    % MARK BAD EPOCHS (-500 TO 500 uV THRESHOLD)
-    EEG_EO = pop_eegthresh(EEG_EO,1, ...
-        [1:length(EEG_EO.chanlocs)], ...
-        -500, 500, ...
-        -1.024, 1.024, ...
-        0, 0);
-    EEG_EC = pop_eegthresh(EEG_EC,1, ...
-        [1:length(EEG_EC.chanlocs)], ...
-        -500,500, ...
-        -1.024, 1.024, ...
-        0, 0);
-     
-    % REJECT BAD EPOCHS FOR EO AND EC DATA
-    EEG_EO = pop_rejepoch(EEG_EO, EEG_EO.reject.rejthresh,0);
-    EEG_EC = pop_rejepoch(EEG_EC, EEG_EC.reject.rejthresh,0);
-     
-    % APPLY IMPROBABILITY TEST WITH 6SD FOR SINGLE CHANNELS AND 2SD FOR
-    % ALL CHANNELS. REJECT SELECTED EPOCHS AGAIN. MAKOTO RECOMMENDATION
-    EEG_EO = pop_jointprob(EEG_EO, 1, [1:length(EEG_EO.chanlocs)], ...
-        6, 2, 0, 1, 0, [], 0);
-    EEG_EC = pop_jointprob(EEG_EC, 1, [1:length(EEG_EC.chanlocs)], ...
-        6, 2, 0, 1, 0, [], 0);
-    EEG_EO.setname = [subject '_EO_Preprocessed']; % NAME FOR DATASET MENU
-    EEG_EC.setname = [subject '_EC_Preprocessed']; % NAME FOR DATASET MENU
-    EEG_EO = eeg_checkset(EEG_EO);
-    EEG_EC = eeg_checkset(EEG_EC);
-     
-    % SAVE DATA AFTER EPOCH REJECTION
-    EEG_EO = pop_saveset(EEG_EO, ...
-        'filename',[subject '_EO_Preprocessed.set'], ...
-        'filepath', final);
-    EEG_EC = pop_saveset(EEG_EC, ...
-        'filename',[subject '_EC_Preprocessed.set'], ...
-        'filepath', final);
-    
-    fprintf('\n\n\n**** subject ****\n\n\n');
-    
-end
 
 % SAVE INTERPOLATED CHANNELS AS .MAT IN FOLDER Saved_Variables
 cd 'Saved_Variables';
 save InterpolatedChannels.mat interchans
 
-fprintf('\n\n\n**** LEMON PREPROCESSING FINISHED ****\n\n\n');
+fprintf('\n\n\n**** LEMON PREPROCESSING 1 FINISHED ****\n\n\n');
