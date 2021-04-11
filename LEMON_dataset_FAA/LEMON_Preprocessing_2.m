@@ -11,7 +11,6 @@ cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON'
 
 % SET EEGLAB PREFERENCES
 pop_editoptions('option_storedisk', 1);
-pop_editoptions('option_single', 0);
 
 % DEFINE THE SET OF SUBJECTS
 % 5 subjects removed from LEMON due to missing data:
@@ -54,35 +53,13 @@ numsubjects = length(subject_list);
 eegfolder = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\';
 rawfolder = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Raw_BIDS_ID\';
 
-%PATH TO LOCALIZER FILE (INCLUDES CHANNEL LOCATIONS)
-localizer = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Localizer_BIDS_ID\'; % NOT SURE HERE
-
 % CREATE FOLDERS FOR THE PREPROCESSED DATA
-if~exist('EEG_Preprocessed', 'dir')
-    mkdir 'EEG_Preprocessed'
-end
 ppfolder = [eegfolder 'EEG_Preprocessed\'];
 cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Preprocessed'
-    
-if ~exist('RS_EO', 'dir')
-    mkdir EEG_RS RS_EO
-end
 rsdir = [ppfolder 'EEG_RS'];
 eodir = [ppfolder 'EEG_RS\RS_EO'];
-
-if ~exist('RS_EC', 'dir')
-    mkdir EEG_RS RS_EC
-end
 ecdir = [ppfolder 'EEG_RS\RS_EC'];
-
-if ~exist('EEG_Final', 'dir')
-    mkdir EEG_Final
-end
 final = [ppfolder 'EEG_Final'];
-
-if ~exist('Saved_Variables', 'dir')
-    mkdir Saved_Variables
-end
 
 %% LOAD DATA WITH ICA WEIGHTS
 
@@ -93,7 +70,7 @@ for s = 1:numsubjects
     % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
     subjectfolder = [rawfolder subject '\'];
     
-    EEG = pop_loadset('filename',[subject '_Filt.set'],'filepath', rsdir);
+    EEG = pop_loadset('filename',[subject '_Filt.set'],'filepath', rsdir); % DATA BEFORE ASR
     originalchanlocs = EEG.chanlocs; % FOR INTERPOLATION LATER
     
     % LOAD FILES WITH ICA WEIGHTS
@@ -127,7 +104,7 @@ for s = 1:numsubjects
             'filepath', rsdir);
     end
      
-    %% POST ICA
+    %% POST ICA - INTERPOLATION
      
     % INTERPOLATE CHANNELS USING ORIGINAL CHANNEL LOCATIONS
     EEG = pop_interp(EEG, originalchanlocs, 'spherical');
@@ -248,4 +225,4 @@ cd 'Saved_Variables';
 save NumberOfEpochsEO.mat numepochs_EO
 save NumberOfEpochsEC.mat numepochs_EC
 
-fprintf('\n\n\n**** LEMON PREPROCESSING FINISHED ****\n\n\n');
+fprintf('\n\n\n**** LEMON PREPROCESSING 2 FINISHED ****\n\n\n');
