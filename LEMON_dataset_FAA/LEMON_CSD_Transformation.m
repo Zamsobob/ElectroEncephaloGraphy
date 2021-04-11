@@ -9,20 +9,25 @@ cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON'
 
 % SET EEGLAB PREFERENCES
 pop_editoptions('option_storedisk', 1);
-pop_editoptions( 'option_single', 0);
+pop_editoptions('option_single', 0);
 
 % PATH TO THE NECESSARY FOLDERS
 eegfolder = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\';
 rawfolder = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Raw_BIDS_ID\';
 ppfolder = [eegfolder 'EEG_Preprocessed\'];
-final = [ppfolder 'EEG_Final'];
-csdfolder = [ppfolder 'RS_CSD'];
+final = [ppfolder 'EEG_Final\'];
+cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Preprocessed\EEG_Final'
+if~exist('CSD', 'dir')
+    mkdir 'CSD'
+end
+csdfolder = [final 'CSD'];
 csddir = [eegfolder 'CSDtoolbox'];
 
 % ADD CSDTOOLBOX (WHICH IS IN EEGFOLDER) AND SUBFOLDERS TO PATH
 addpath(genpath(csddir));
 
 % DEFINE THE SET OF SUBJECTS
+% REMOVED SUBS 126, 137, 285 AFTER PREPROCESSING
 subject_list = {'sub-010002', 'sub-010003', 'sub-010004', 'sub-010005', 'sub-010006', 'sub-010007', ...
     'sub-010010', 'sub-010010', 'sub-010012', 'sub-010015', 'sub-010016', 'sub-010017', 'sub-010019', ...
     'sub-010020', 'sub-010021', 'sub-010022', 'sub-010023', 'sub-010024', 'sub-010026', 'sub-010027', ...
@@ -35,7 +40,7 @@ subject_list = {'sub-010002', 'sub-010003', 'sub-010004', 'sub-010005', 'sub-010
     'sub-010075', 'sub-010076', 'sub-010077', 'sub-010078', 'sub-010079', 'sub-010080', 'sub-010081', ...
     'sub-010083', 'sub-010084', 'sub-010085', 'sub-010086', 'sub-010087', 'sub-010088', 'sub-010089', ...
     'sub-010090', 'sub-010091', 'sub-010092', 'sub-010093', 'sub-010094', 'sub-010100', 'sub-010104', ...
-    'sub-010126', 'sub-010134', 'sub-010136', 'sub-010137', 'sub-010138', 'sub-010141', 'sub-010142', ...
+    'sub-010134', 'sub-010136', 'sub-010138', 'sub-010141', 'sub-010142', ...
     'sub-010146', 'sub-010148', 'sub-010150', 'sub-010152', 'sub-010155', 'sub-010157', 'sub-010162', ...
     'sub-010163', 'sub-010164', 'sub-010165', 'sub-010166', 'sub-010168', 'sub-010170', 'sub-010176', ...
     'sub-010183', 'sub-010191', 'sub-010192', 'sub-010193', 'sub-010194', 'sub-010195', 'sub-010196', ...
@@ -49,17 +54,45 @@ subject_list = {'sub-010002', 'sub-010003', 'sub-010004', 'sub-010005', 'sub-010
     'sub-010262', 'sub-010263', 'sub-010264', 'sub-010265', 'sub-010266', 'sub-010267', 'sub-010268', ...
     'sub-010269', 'sub-010270', 'sub-010271', 'sub-010272', 'sub-010273', 'sub-010274', 'sub-010275', ...
     'sub-010276', 'sub-010277', 'sub-010278', 'sub-010279', 'sub-010280', 'sub-010282', 'sub-010283', ...
-    'sub-010284', 'sub-010285', 'sub-010286', 'sub-010287', 'sub-010288', 'sub-010289', 'sub-010290', ...
+    'sub-010284', 'sub-010286', 'sub-010287', 'sub-010288', 'sub-010289', 'sub-010290', ...
     'sub-010291', 'sub-010292', 'sub-010294', 'sub-010295', 'sub-010296', 'sub-010297', 'sub-010298', ...
     'sub-010299', 'sub-010300', 'sub-010301', 'sub-010302', 'sub-010303', 'sub-010304', 'sub-010305', ...
     'sub-010306', 'sub-010307', 'sub-010308', 'sub-010309', 'sub-010310', 'sub-010311', 'sub-010314', ...
     'sub-010315', 'sub-010316', 'sub-010317', 'sub-010318', 'sub-010319', 'sub-010321'};
 numsubjects = length(subject_list);
 
+%% REMOVE VEOG CHANNEL (CHANNEL #17)
+parfor s = 1:numsubjects % PARALLEL COMPUTING TOOLBOX
+    
+    subject = subject_list{s};
+    
+    % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
+    subjectfolder = [rawfolder subject '\'];
+    
+    % LOAD PREPROCESSED DATA
+    EEG_EO = pop_loadset('filename', [subject '_EO_Preprocessed.set'],'filepath', final);
+    EEG_EC = pop_loadset('filename', [subject '_EC_Preprocessed.set'],'filepath', final);
+    
+    % REMOVE VEOG CHANNEL
+    EEG_EO = pop_select(EEG_EO, ...
+        'nochannel', {'VEOG'});
+    EEG_EC = pop_select(EEG_EC, ...
+        'nochannel', {'VEOG'});
+    
+    % SAVE DATA WITH VEOG CHANNEL REMOVED
+    EEG_EO = pop_saveset(EEG_EO, ...
+         'filename',[subject '_EO_NoVEOG.set'], ...
+         'filepath', csdfolder);
+     EEG_EC = pop_saveset(EEG_EC, ...
+         'filename',[subject '_EC_NoVEOG.set'], ...
+         'filepath', csdfolder);
+    
+end
+     
 %% GENERATE EEG MONTAGE AND TRANSFORMATION MATRICES
 
-% LOAD PREPROCESSED DATA FOR ONE SUBJECT
-EEG = pop_loadset('filename', 'sub-002_EO_Preprocessed.set','filepath', final);
+% LOAD PREPROCESSED DATA WITH REMOVED VEOG FOR ONE SUBJECT
+EEG = pop_loadset('filename', 'sub-010002_EO_NoVEOG.set', 'filepath', csdfolder);
 
 % CREATE A COLUMN VECTOR OF CHANNEL LABELS BY TRANSPOSITION
 electrodes = {EEG.chanlocs.labels}';
@@ -68,14 +101,14 @@ electrodes = {EEG.chanlocs.labels}';
 % CSD TOOLBOX. THE HEAD IS REPRESENTED AS A UNIT SPHERE (RADIUS OF 1)
 montage = ExtractMontage('10-5-System_Mastoids_EGI129.csd', electrodes);
     
-% GENERATE THE ELECTRODES X ELECTRODES TRANSFORMATION MATRICES 'G' AND
-% 'H' THAT THE SURFACE LAPLACIAN IN THE CSD TOOLBOX IS BASED ON.
+% GENERATE THE ELECTRODES TIMES ELECTRODES TRANSFORMATION MATRICES 'G'
+% AND 'H' THAT THE SURFACE LAPLACIAN IN THE CSD TOOLBOX IS BASED ON.
 % 'G' USED FOR SPHERICAL SPLINE INTERPOLATION OF SURFACE POTENTIALS
 % 'H' USED FOR CURRENT SOURCE DENSITIES
 [G, H] = GetGH(montage); % SPLINE FLEXIBILITY(m) = 4 (DEFAULT)
     
 % SAVE G AND H TO LATER IMPORT WHEN COMPUTING THE CSD TRANFORM
-cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_CSD'
+cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Preprocessed\EEG_Final\CSD'
 save CSDmontage.mat G H montage;
 
 %% SURFACE LAPLACIAN TRANSFORMATION
@@ -88,8 +121,8 @@ for s = 1:numsubjects
     % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
     subjectfolder = [rawfolder subject '\'];
     
-    % LOAD PREPROCESSED EO DATASETS
-    EEG_EO = pop_loadset('filename',[subject '_EO_Preprocessed.set'],'filepath', final);
+    % LOAD PREPROCESSED EO DATASET WITH VEOG REMOVED
+    EEG_EO = pop_loadset('filename',[subject '_EO_NoVEOG.set'],'filepath', csdfolder);
     CSDdata_EO = repmat(NaN,size(EEG_EO.data)); % INITIALIZE
     
     % APPLY THE SURFACE LAPLACIAN TRANSFORM TO EACH EPOCH
@@ -121,8 +154,8 @@ for s = 1:numsubjects
     % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
     subjectfolder = [rawfolder subject '\'];
     
-    % LOAD PREPROCESSED EO DATASETS
-    EEG_EC = pop_loadset('filename',[subject '_EC_Preprocessed.set'],'filepath', final);
+    % LOAD PREPROCESSED EC DATASET WITH VEOG REMOVED
+    EEG_EC = pop_loadset('filename',[subject '_EC_NoVEOG.set'],'filepath', csdfolder);
     CSDdata_EC = repmat(NaN,size(EEG_EC.data)); % INITIALIZE
     
     % APPLY THE SURFACE LAPLACIAN TRANSFORM TO EACH EPOCH
@@ -144,7 +177,7 @@ for s = 1:numsubjects
      CSDdata_EC(:,:,:) = NaN;    % RE-INITIALIZE DATA OUTPUT
 end
 
-fprintf('\n\n\n**** CSD FINISHED ****\n\n\n');
+fprintf('\n\n\n**** LEMON CSD TRANSFORM FINISHED ****\n\n\n');
 
 %% ------------------------------------------------------------------
 % NOTES
