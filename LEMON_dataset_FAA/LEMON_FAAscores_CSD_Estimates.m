@@ -1,3 +1,5 @@
+clear;
+clc;
 %% SET UP FILES AND FOLDERS
 
 % MAKE SURE EEGLAB IS IN PATH
@@ -6,47 +8,112 @@ addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2021.0');
 cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON'
 
 % SET EEGLAB PREFERENCES
-pop_editoptions( 'option_storedisk', 1);
-pop_editoptions( 'option_single', 0);
+pop_editoptions('option_storedisk', 1);
+pop_editoptions('option_single', 0);
 
 % PATH TO THE NECESSARY FOLDERS
 eegfolder = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\';
 rawfolder = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Raw_BIDS_ID\';
 ppfolder = [eegfolder 'EEG_Preprocessed\'];
-csdfolder = [ppfolder 'RS_CSD'];
+final = [ppfolder 'EEG_Final\'];
+cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Preprocessed\EEG_Final'
+if~exist('CSD', 'dir')
+    mkdir 'CSD'
+end
+csdfolder = [final 'CSD'];
 csddir = [eegfolder 'CSDtoolbox'];
 
-% DEFINE THE SET OF SUBJECTS THAT WERE ETHICALLY APPROVED
-subject_list = {'sub-002', 'sub-005', 'sub-006', 'sub-008', 'sub-009', ...
-    'sub-011', 'sub-013', 'sub-014', 'sub-015', 'sub-019', ...
-    'sub-020', 'sub-021', 'sub-022', 'sub-025', 'sub-027', ...
-    'sub-028', 'sub-029', 'sub-030', 'sub-031', 'sub-032'};
+% ADD CSDTOOLBOX (WHICH IS IN EEGFOLDER) AND SUBFOLDERS TO PATH
+addpath(genpath(csddir));
+
+% DEFINE THE SET OF SUBJECTS
+% REMOVED SUBS 126, 137, 285 AFTER PREPROCESSING
+subject_list = {'sub-010002', 'sub-010003', 'sub-010004', 'sub-010005', 'sub-010006', 'sub-010007', ...
+    'sub-010010', 'sub-010010', 'sub-010012', 'sub-010015', 'sub-010016', 'sub-010017', 'sub-010019', ...
+    'sub-010020', 'sub-010021', 'sub-010022', 'sub-010023', 'sub-010024', 'sub-010026', 'sub-010027', ...
+    'sub-010028', 'sub-010029', 'sub-010030', 'sub-010031', 'sub-010032', 'sub-010033', 'sub-010034', ...
+    'sub-010035', 'sub-010036', 'sub-010037', 'sub-010038', 'sub-010039', 'sub-010040', 'sub-010041', ...
+    'sub-010042', 'sub-010044', 'sub-010045', 'sub-010046', 'sub-010047', 'sub-010048', 'sub-010049', ...
+    'sub-010050', 'sub-010051', 'sub-010052', 'sub-010053', 'sub-010056', 'sub-010059', 'sub-010060', ...
+    'sub-010061', 'sub-010062', 'sub-010063', 'sub-010064', 'sub-010065', 'sub-010066', 'sub-010067', ...
+    'sub-010068', 'sub-010069', 'sub-010070', 'sub-010071', 'sub-010072', 'sub-010073', 'sub-010074', ...
+    'sub-010075', 'sub-010076', 'sub-010077', 'sub-010078', 'sub-010079', 'sub-010080', 'sub-010081', ...
+    'sub-010083', 'sub-010084', 'sub-010085', 'sub-010086', 'sub-010087', 'sub-010088', 'sub-010089', ...
+    'sub-010090', 'sub-010091', 'sub-010092', 'sub-010093', 'sub-010094', 'sub-010100', 'sub-010104', ...
+    'sub-010134', 'sub-010136', 'sub-010138', 'sub-010141', 'sub-010142', ...
+    'sub-010146', 'sub-010148', 'sub-010150', 'sub-010152', 'sub-010155', 'sub-010157', 'sub-010162', ...
+    'sub-010163', 'sub-010164', 'sub-010165', 'sub-010166', 'sub-010168', 'sub-010170', 'sub-010176', ...
+    'sub-010183', 'sub-010191', 'sub-010192', 'sub-010193', 'sub-010194', 'sub-010195', 'sub-010196', ...
+    'sub-010197', 'sub-010199', 'sub-010200', 'sub-010201', 'sub-010202', 'sub-010204', 'sub-010207', ...
+    'sub-010210', 'sub-010213', 'sub-010214', 'sub-010215', 'sub-010216', 'sub-010218', 'sub-010219', ...
+    'sub-010220', 'sub-010222', 'sub-010223', 'sub-010224', 'sub-010226', 'sub-010227', 'sub-010228', ...
+    'sub-010230', 'sub-010231', 'sub-010232', 'sub-010233', 'sub-010234', 'sub-010236', 'sub-010238', ...
+    'sub-010239', 'sub-010240', 'sub-010241', 'sub-010242', 'sub-010243', 'sub-010244', 'sub-010245', ...
+    'sub-010246', 'sub-010247', 'sub-010248', 'sub-010249', 'sub-010250', 'sub-010251', 'sub-010252', ...
+    'sub-010254', 'sub-010255', 'sub-010256', 'sub-010257', 'sub-010258', 'sub-010260', 'sub-010261', ...
+    'sub-010262', 'sub-010263', 'sub-010264', 'sub-010265', 'sub-010266', 'sub-010267', 'sub-010268', ...
+    'sub-010269', 'sub-010270', 'sub-010271', 'sub-010272', 'sub-010273', 'sub-010274', 'sub-010275', ...
+    'sub-010276', 'sub-010277', 'sub-010278', 'sub-010279', 'sub-010280', 'sub-010282', 'sub-010283', ...
+    'sub-010284', 'sub-010286', 'sub-010287', 'sub-010288', 'sub-010289', 'sub-010290', ...
+    'sub-010291', 'sub-010292', 'sub-010294', 'sub-010295', 'sub-010296', 'sub-010297', 'sub-010298', ...
+    'sub-010299', 'sub-010300', 'sub-010301', 'sub-010302', 'sub-010303', 'sub-010304', 'sub-010305', ...
+    'sub-010306', 'sub-010307', 'sub-010308', 'sub-010309', 'sub-010310', 'sub-010311', 'sub-010314', ...
+    'sub-010315', 'sub-010316', 'sub-010317', 'sub-010318', 'sub-010319', 'sub-010321'};
 numsubjects = length(subject_list);
 
-% INITIALIZE VARIABLES FOR ANALYSING ALL FRONTAL ELECTRODES
-numelectrodes = 27; % NUMBER OF ELECTRODES IN DATASET
-numelecpairs = 4; % NUMBER OF ELECTRODE PAIRS TO COMPARE (E.G., F3/F4)
-EO_alphapower = zeros(numelectrodes, numsubjects); % EO ALPHA POWER
-EC_alphapower = zeros(numelectrodes, numsubjects); % EC ALPHA POWER
-EO_asymmetry = zeros(numelecpairs, numsubjects); % EO FAA SCORES
-EC_asymmetry = zeros(numelecpairs, numsubjects); % EC FAA SCORES
+%% REMOVE VEOG CHANNEL (CHANNEL #17)
+parfor s = 1:numsubjects % PARALLEL COMPUTING TOOLBOX
+    
+    subject = subject_list{s};
+    
+    % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
+    subjectfolder = [rawfolder subject '\'];
+    
+    % LOAD PREPROCESSED DATA
+    EEG_EO = pop_loadset('filename', [subject '_EO_Preprocessed.set'],'filepath', final);
+    EEG_EC = pop_loadset('filename', [subject '_EC_Preprocessed.set'],'filepath', final);
+    
+    % REMOVE VEOG CHANNEL
+    EEG_EO = pop_select(EEG_EO, ...
+        'nochannel', {'VEOG'});
+    EEG_EC = pop_select(EEG_EC, ...
+        'nochannel', {'VEOG'});
+    
+    % SAVE DATA WITH VEOG CHANNEL REMOVED
+    EEG_EO = pop_saveset(EEG_EO, ...
+         'filename',[subject '_EO_NoVEOG.set'], ...
+         'filepath', csdfolder);
+     EEG_EC = pop_saveset(EEG_EC, ...
+         'filename',[subject '_EC_NoVEOG.set'], ...
+         'filepath', csdfolder);
+    
+end
+     
+%% GENERATE EEG MONTAGE AND TRANSFORMATION MATRICES
 
-% INITIALIZING VARIABLES FOR ANALYSIS OF LEFT AND RIGHT ELECTRODE CLUSTERS
-EO_alphapower_L = zeros(1, numsubjects); % EO ALPHA POWER LEFT CLUSTER
-EC_alphapower_L = zeros(1, numsubjects); % EC ALPHA POWER LEFT CLUSTER
-EO_alphapower_R = zeros(1, numsubjects); % EO ALPHA POWER RIGHT CLUSTER
-EC_alphapower_R = zeros(1, numsubjects); % EO ALPHA POWER RIGHT CLUSTER
+% LOAD PREPROCESSED DATA WITH REMOVED VEOG FOR ONE SUBJECT
+EEG = pop_loadset('filename', 'sub-010002_EO_NoVEOG.set', 'filepath', csdfolder);
 
-EO_asymmetry_clust = zeros(1, numsubjects); % EO FAA SCORES CLUSTERS
-EC_asymmetry_clust = zeros(1, numsubjects); % EC FAA SCORES CLUSTERS
+% CREATE A COLUMN VECTOR OF CHANNEL LABELS BY TRANSPOSITION
+electrodes = {EEG.chanlocs.labels}';
+    
+% SPECIFY AN EEG MONTAGE OF THE SPATIAL ELECTRODE LOCATIONS USING THE
+% CSD TOOLBOX. THE HEAD IS REPRESENTED AS A UNIT SPHERE (RADIUS OF 1)
+montage = ExtractMontage('10-5-System_Mastoids_EGI129.csd', electrodes);
+    
+% GENERATE THE ELECTRODES TIMES ELECTRODES TRANSFORMATION MATRICES 'G'
+% AND 'H' THAT THE SURFACE LAPLACIAN IN THE CSD TOOLBOX IS BASED ON.
+% 'G' USED FOR SPHERICAL SPLINE INTERPOLATION OF SURFACE POTENTIALS
+% 'H' USED FOR CURRENT SOURCE DENSITIES
+[G, H] = GetGH(montage); % SPLINE FLEXIBILITY(m) = 4 (DEFAULT)
+    
+% SAVE G AND H TO LATER IMPORT WHEN COMPUTING THE CSD TRANFORM
+cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Preprocessed\EEG_Final\CSD'
+save CSDmontage.mat G H montage;
 
-% ELECTRODE CLUSTERS
-nchans_left = [5 7 9 11]; % LEFT = [AF3 F7 F5 F3] INCORRECT AFTER CSD?
-nchans_right = [6 8 10 12]; % RIGHT = [AF4 F8 F6 F4] INCORRECT AFTER CSD?
+%% SURFACE LAPLACIAN TRANSFORMATION
 
-%% FREQUENCY DECOMPOSITION
-
-% LOOP THROUGH ALL SUBJECTS
+% LOOP THROUGH ALL SUBJECTS IN THE EYES OPEN CONDITION
 for s = 1:numsubjects
     
     subject = subject_list{s};
@@ -54,148 +121,71 @@ for s = 1:numsubjects
     % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
     subjectfolder = [rawfolder subject '\'];
     
-    % LOAD PREPROCESSED EO AND EC DATASETS
-    EEG_EO = pop_loadset('filename',[subject '_EO_CSD_Estimates.set'],'filepath', csdfolder);
-    EEG_EC = pop_loadset('filename',[subject '_EC_CSD_Estimates.set'],'filepath', csdfolder);
-   
-    %% ANALYSIS OF ALL CHANNELS
+    % LOAD PREPROCESSED EO DATASET WITH VEOG REMOVED
+    EEG_EO = pop_loadset('filename',[subject '_EO_NoVEOG.set'],'filepath', csdfolder);
+    CSDdata_EO = repmat(NaN,size(EEG_EO.data)); % INITIALIZE
     
-    % COMPUTE POWER SPECTAL DENSITY (PSD) OF THE EPOCHS FOR ALL CHANNELS
-    [EO_spect, freqs] = spectopo(EEG_EO.data, ...
-        EEG_EO.pnts, EEG_EO.srate, ...
-        'chanlocs', EEG_EO.chanlocs, ...
-        'freqfac', 2, ...
-        'plot', 'off'); 
-    [EC_spect, freqs] = spectopo(EEG_EC.data, ...
-        EEG_EC.pnts, EEG_EC.srate, ...
-        'chanlocs', EEG_EC.chanlocs, ...
-        'freqfac', 2, ...
-        'plot', 'off');
-    
-    % OUTPUT IS IN dB / cm^2 -> 10*log10(uV^2/Hz) / cm^2
-    
-    % CONVERT TO ALPHA POWER CSD (uV^2/Hz) / cm^2 AND AVERAGE ACROSS FREQUENCIES
-    
-    alphaindex = find(freqs >= 8 & freqs <= 13); % FREQUENCY RANGE 8-13 Hz
-    
-    % CREATE CHANNEL X SUBEJCT MATRIX OF MEAN ALPHA POWER
-    for electrode = 1:numelectrodes  
-        EO_alphapower(electrode, s) = mean(10.^(EO_spect(electrode, alphaindex)/10));
-        EC_alphapower(electrode, s) = mean(10.^(EC_spect(electrode, alphaindex)/10));
+    % APPLY THE SURFACE LAPLACIAN TRANSFORM TO EACH EPOCH
+    % SMOOTHING CONSTANT(LAMBDA) = 0.00001 = 1.0e-5
+    % HEAD RADIUS = 10CM -> RETURNS VALUES OF uV/cm^2
+    for ep = 1:length(EEG_EO.epoch)
+        Data = squeeze(EEG_EO.data(:,:,ep)); % DATA CONTAINS EEG SIGNALS TO BE TRANSFORMED
+        X = CSD(Data, G, H); % X IS THE CSD ESTIMATE OF DATA. 
+        CSDdata_EO(:,:,ep) = X;   
     end
+    EEG_EO.data = CSDdata_EO; % REPLACE EEG DATA WITH CSD ESTIMATES
     
-    % CREATE MATRIX OF ASYMMETRY SCORES. ROWS ARE ELECTRODE PAIRS AF4-AF3,
-    % F4-F3, F6-F5, AND F8-F7. COLUMNS ARE SUBJECTS
-    for i = 1:numelecpairs
-        EO_asymmetry(i, s) = log(EO_alphapower(nchans_right(i),s)) - log(EO_alphapower(nchans_left(i),s));
-        EC_asymmetry(i, s) = log(EC_alphapower(nchans_right(i),s)) - log(EC_alphapower(nchans_left(i),s));
-    end
- 
-    %% ANALYSIS OF LEFT AND RIGHT ELECTRODE CLUSTERS
-    
-    % CREATE LEFT AND RIGHT ELECTRODE CLUSTERS
-    EO_eleclust_left = mean(EEG_EO.data(nchans_left,:,:),1);
-    EO_eleclust_right = mean(EEG_EO.data(nchans_right,:,:),1); 
-    EC_eleclust_left = mean(EEG_EC.data(nchans_left,:,:),1);
-    EC_eleclust_right = mean(EEG_EC.data(nchans_right,:,:),1);
-    
-    % COMPUTE PSD OF THE EPOCHS AT LEFT ELECTRODE CLUSTER
-    [EO_spect_L, freqs] = spectopo(EO_eleclust_left, ...
-        EEG_EO.pnts, EEG_EO.srate, ...
-        'chanlocs', EEG_EO.chanlocs, ...
-        'freqfac', 2, ...
-        'plot', 'off'); 
-    [EC_spect_L, freqs] = spectopo(EC_eleclust_left, ...
-        EEG_EC.pnts, EEG_EC.srate, ...
-        'chanlocs', EEG_EC.chanlocs, ...
-        'freqfac', 2, ...
-        'plot', 'off');
+    % SAVE CSD TRANSFORMED DATA. NOTE: DATA CONTAINS CSD ESTIMATES, NOT EEG SIGNALS
+    EEG_EO.setname = [subject '_EO_CSD_Estimates']; % NAME FOR DATASET MENU
+    EEG_EO = pop_saveset(EEG_EO, ...
+         'filename',[subject '_EO_CSD_Estimates.set'], ...
+         'filepath', csdfolder);
 
-    % COMPUTE PSD OF THE EPOCHS AT RIGHT ELECTRODE CLUSTER
-    [EO_spect_R, freqs] = spectopo(EO_eleclust_right, ...
-        EEG_EO.pnts, EEG_EO.srate, ...
-        'chanlocs', EEG_EO.chanlocs, ...
-        'freqfac', 2, ...
-        'plot', 'off');
-    [EC_spect_R, freqs] = spectopo(EC_eleclust_right, ...
-        EEG_EC.pnts, EEG_EC.srate, ...
-        'chanlocs', EEG_EC.chanlocs, ...
-        'freqfac', 2, ...
-        'plot', 'off');
-    
-    % OUTPUT IS IN dB / cm^2 -> 10*log10(uV^2/Hz) / cm^2
-    
-    % CONVERT TO ALPHA POWER CSD (uV^2/Hz) / cm^2 AND AVERAGE ACROSS FREQUENCIES
-    
-    % ALPHA POWER LEFT ELECTRODE CLUSTER FOR EO AND EC
-    EO_alphapower_L(1,s) = mean(10.^(EO_spect_L(alphaindex)/10));
-    EC_alphapower_L(1,s) = mean(10.^(EC_spect_L(alphaindex)/10));
-    
-    % ALPHA POWER RIGHT ELECTRODE CLUSTER FOR EO AND EC
-    EO_alphapower_R(1,s) = mean(10.^(EO_spect_R(alphaindex)/10));
-    EC_alphapower_R(1,s) = mean(10.^(EC_spect_R(alphaindex)/10));
-    
-    % ALPHA ASYMMETRY SCORES FOR EO AND EC
-    EO_asymmetry_clust(1,s) = log(EO_alphapower_R(1,s)) - log(EO_alphapower_L(1,s));
-    EC_asymmetry_clust(1,s) = log(EC_alphapower_R(1,s)) - log(EC_alphapower_L(1,s));
-    
+     CSDdata_EO(:,:,:) = NaN;    % RE-INITIALIZE DATA OUTPUT
 end
 
-% EXPORT FILES TO EXCEL AND SAVE IN STATISTICS FOLDER
-cd 'D:\FAA_Study_2021\Skovde\Skovde_EEG\EEG_Statistics'
-% xlswrite('FAAscores_CSD', EO_alphapower, 'EO Alpha Power');
-% xlswrite('FAAscores_CSD', EC_alphapower, 'EC Alpha Power');
-xlswrite('FAAscores_CSD', EO_asymmetry, 'EO Asymmetry Scores');
-xlswrite('FAAscores_CSD', EC_asymmetry, 'EC Asymmetry Scores');
+clear s ep Data X
 
-% xlswrite('FAAscores_CSD', EO_alphapower_L, 'EO Alpha Power Left Cluster');
-% xlswrite('FAAscores_CSD', EO_alphapower_R, 'EO Alpha Power right Cluster');
-% xlswrite('FAAscores_CSD', EC_alphapower_L, 'EC Alpha Power Left Cluster');
-% xlswrite('FAAscores_CSD', EC_alphapower_R, 'EC Alpha Power right Cluster');
-xlswrite('FAAscores_CSD', EO_asymmetry_clust, 'EO Cluster Asymmetry Scores');
-xlswrite('FAAscores_CSD', EC_asymmetry_clust, 'EC Cluster Asymmetry Scores');
+% LOOP THROUGH ALL SUBJECTS IN THE EYES CLOSED CONDITION
+for s = 1:numsubjects
+    
+    subject = subject_list{s};
+    
+    % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
+    subjectfolder = [rawfolder subject '\'];
+    
+    % LOAD PREPROCESSED EC DATASET WITH VEOG REMOVED
+    EEG_EC = pop_loadset('filename',[subject '_EC_NoVEOG.set'],'filepath', csdfolder);
+    CSDdata_EC = repmat(NaN,size(EEG_EC.data)); % INITIALIZE
+    
+    % APPLY THE SURFACE LAPLACIAN TRANSFORM TO EACH EPOCH
+    % SMOOTHING CONSTANT(LAMBDA) = 0.00001 = 1.0e-5
+    % HEAD RADIUS = 10CM -> RETURNS VALUES OF uV/cm^2
+    for ep = 1:length(EEG_EC.epoch)
+        Data = squeeze(EEG_EC.data(:,:,ep)); % DATA CONTAINS EEG SIGNALS TO BE TRANSFORMED
+        X = CSD(Data, G, H); % X IS THE CSD ESTIMATE OF DATA
+        CSDdata_EC(:,:,ep) = X;   
+    end
+    EEG_EC.data = CSDdata_EC; % REPLACE EEG DATA WITH CSD ESTIMATES
+    
+    % SAVE CSD TRANSFORMED DATA. NOTE: DATA CONTAINS CSD ESTIMATES, NOT EEG SIGNALS
+    EEG_EC.setname = [subject '_EC_CSD_Estimates']; % NAME FOR DATASET MENU
+    EEG_EC = pop_saveset(EEG_EC, ...
+         'filename',[subject '_EC_CSD_Estimates.set'], ...
+         'filepath', csdfolder);
 
+     CSDdata_EC(:,:,:) = NaN;    % RE-INITIALIZE DATA OUTPUT
+end
 
-% PLOT POWER SPECTRUM FOR ELECTRODE CLUSTERS. CREATE BETTER PLOTS WITH SPECTOPO LATER
-figure
-subplot(221)
-bar(freqs, abs(EO_spect_L))
-set(gca,'xlim',[-5 105])
-xlabel('Frequency (Hz)')
-ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
-title('Power Spectra for Eyes Open Left Cluster')
+fprintf('\n\n\n**** LEMON CSD TRANSFORM FINISHED ****\n\n\n');
 
-subplot(222)
-bar(freqs, abs(EO_spect_R))
-set(gca,'xlim',[-5 105])
-xlabel('Frequency (Hz)')
-ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
-title('Power Spectra for Eyes Open Right Cluster')
+%% ------------------------------------------------------------------
+% NOTES
 
-subplot(223)
-bar(freqs, abs(EC_spect_L))
-set(gca,'xlim',[-5 105])
-xlabel('Frequency (Hz)')
-ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
-title('Power Spectra for Eyes Closed Left Cluster')
+% verify the integrity and correctness of the identified EEG montage with the function “MapMontage” in
+% CSD toolbox by entering “MapMontage(montage)” in the MATLAB command window. This produces a
+% topographical plot of the EEG montage. Very important.
 
-subplot(224)
-bar(freqs, abs(EC_spect_R))
-set(gca,'xlim',[-5 105])
-xlabel('Frequency (Hz)')
-ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
-title('Power Spectra for Eyes Closed Right Cluster')
-
-fprintf('\n\n\n**** FAA FINISHED ****\n\n\n');
-
-
-
-% EYES OPEN AND EYES CLOSED. COMBINE THEM? MIGHT NEED TO TEST FOR
-% STATISTICAL DIFFERENCE BETWEEN THE CONDITIONS WITH T-TEST LIKE PILLERIIN?
-% ALLEN & COHEN, 2010 SIMPLY ANALYSED EO AND EC TOGETHER. 
-
-% OVERLAP? DO NOT THINK I NEED IT SINCE I HAVE OVERLAPPING EPOCHS?
-% POWER UNITS? CSD ESTIMATES ARE uV^2/cm^2. DO I NEED TO ACCOUNT FOR THIS?
-% NOW POWER IS (uV^2/cm^2)/Hz? GUESS THIS IS THE POINT OF THE LAPLACIAN
-
-% 'freqfac', 2, ...     after chanlocs
+% NEED TO MAKE SURE THAT I HAVE THE CORRECT POWER UNITS AFTER FOURIER TRANSFORM
+% SEE PAGE 7:
+% https://jallen.faculty.arizona.edu/sites/jallen.faculty.arizona.edu/files/Chapter_22_Surface_Laplacian.pdf 
