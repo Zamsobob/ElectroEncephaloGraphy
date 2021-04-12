@@ -53,8 +53,8 @@ subject_list = {'sub-010002', 'sub-010003', 'sub-010004', 'sub-010005', 'sub-010
 numsubjects = length(subject_list);
 
 % FRONTAL ELECTRODES
-nchans_left = [3 4 36 37]; % LEFT = [F7 F3 F5 F1]
-nchans_right = [6 7 38 39]; % RIGHT = [F4 F8 F2 F6]
+nchans_left = [37 4 36 3]; % LEFT = [F1 F3 F5 F7]
+nchans_right = [38 6 39 7]; % RIGHT = [F2 F4 F6 F8]
 
 % INITIALIZE VARIABLES
 numelectrodes = 61; % NUMBER OF ELECTRODES IN DATASET
@@ -67,7 +67,7 @@ EC_asymmetry = zeros(numelecpairs, numsubjects); % EC FAA SCORES
 %% FREQUENCY DECOMPOSITION
 
 % LOOP THROUGH ALL SUBJECTS
-for s = 109:numsubjects
+for s = 1:numsubjects
     
     subject = subject_list{s};
     
@@ -104,12 +104,19 @@ for s = 109:numsubjects
         EC_alphapower(electrode, s) = mean(10.^(EC_spect(electrode, alphaindex)/10));
     end
     
-    % CREATE MATRIX OF ASYMMETRY SCORES. ROWS ARE ARE SUBJECTS, COLUMNS ARE ELECTRODE PAIRS
+    % CREATE MATRIX OF ASYMMETRY SCORES. ROWS ARE ELECTRODE PAIRS, COLUMNS ARE SUBJECTS
+    % FROM ROW 1 TO 4: F2-F1, F4-F3, F6-F5, F8-F7. TRANSPOSE LASTER
     for i = 1:numelecpairs
         EO_asymmetry(i, s) = log(EO_alphapower(nchans_right(i),s)) - log(EO_alphapower(nchans_left(i),s));
         EC_asymmetry(i, s) = log(EC_alphapower(nchans_right(i),s)) - log(EC_alphapower(nchans_left(i),s));
     end
 end
+
+% SUBJECTS AS ROWS
+EO_alphapower = EO_alphapower';
+EC_alphapower = EC_alphapower';
+EO_asymmetry = EO_asymmetry';
+EC_asymmetry = EC_asymmetry';
 
 % EXPORT FILES TO EXCEL AND SAVE IN STATISTICS FOLDER
 cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Statistics'
@@ -118,38 +125,4 @@ xlswrite('FAAscores_CSD', EC_alphapower, 'EC Alpha Power');
 xlswrite('FAAscores_CSD', EO_asymmetry, 'EO Asymmetry Scores');
 xlswrite('FAAscores_CSD', EC_asymmetry, 'EC Asymmetry Scores');
 
-% PLOT POWER SPECTRUM FOR ELECTRODE CLUSTERS. CREATE BETTER PLOTS WITH SPECTOPO LATER
-figure
-subplot(221)
-bar(freqs, abs(EO_spect_L))
-set(gca,'xlim',[-5 105])
-xlabel('Frequency (Hz)')
-ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
-title('Power Spectra for Eyes Open Left Cluster')
-
-subplot(222)
-bar(freqs, abs(EO_spect_R))
-set(gca,'xlim',[-5 105])
-xlabel('Frequency (Hz)')
-ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
-title('Power Spectra for Eyes Open Right Cluster')
-
-subplot(223)
-bar(freqs, abs(EC_spect_L))
-set(gca,'xlim',[-5 105])
-xlabel('Frequency (Hz)')
-ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
-title('Power Spectra for Eyes Closed Left Cluster')
-
-subplot(224)
-bar(freqs, abs(EC_spect_R))
-set(gca,'xlim',[-5 105])
-xlabel('Frequency (Hz)')
-ylabel('Log Power Spectral Density 10*log(uV^2/Hz)')
-title('Power Spectra for Eyes Closed Right Cluster')
-
 fprintf('\n\n\n**** FAA FINISHED ****\n\n\n');
-
-% OVERLAP? DO NOT THINK I NEED IT SINCE I HAVE OVERLAPPING EPOCHS?
-% POWER UNITS? CSD ESTIMATES ARE uV^2/cm^2. DO I NEED TO ACCOUNT FOR THIS?
-% NOW POWER IS (uV^2/cm^2)/Hz? GUESS THIS IS THE POINT OF THE LAPLACIAN
