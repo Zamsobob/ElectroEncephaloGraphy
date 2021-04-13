@@ -1,4 +1,4 @@
-## STATISTICAL ANALYSIS OF FRONTAL ALPHA ASYMMETRY (FAA) DATA
+## STATISTICAL ANALYSIS OF FRONTAL ALPHA ASYMMETRY (FAA) DATA. MULTIVARIATE FAA AS DV?
 
 # LOAD REQUIRED PACKAGES
 library(readxl)
@@ -7,19 +7,22 @@ library(writexl)
 library(ggpubr)
 
 # PATH
-exportdir <- "D://MPI_LEMON//EEG_MPILMBB_LEMON//EEG_Statistics//FAAscores_CSD.xls"
+exportdirxls <- "D:\\MPI_LEMON\\EEG_MPILMBB_LEMON\\EEG_Statistics\\Data.xlsx"
 
+# IMPORT DATA --- RECODE AGE AND HANDEDNESS? BINARY
+Data <- data.frame(read_excel(exportdirxls, 1, col_names = TRUE))
+Data <- Data[,2:13]
+colnames(Data)[10] <- "Gender"
 
-# IMPORT DATA
-Data <- data.frame(read_excel(exportdir, 1, col_names = TRUE))
-Data$Gender <- factor(Data$Gender) # FOR GENDER, 0 = FEMALE, 1 = MALE
+# CREATE FACTORS
+Data[,10] <- factor(Data[,10]) # FOR GENDER, 1 = FEMALE, 2 = MALE
 attach(Data)
-str(Data)
+str(data)
 
 #---------------------------
 
 # DESCRIPTIVE STATISTICS, INCLUDING CORRELATIONS. PLOT CORR PLOTS (SUBPLOTS)
-traits <- Data[,5:10]
+traits <- Data[,1:5]
 cortraits <- cor(traits) # CORRELATION MATRIX OF THE BEHAVIOUR SCALES
 cortraits
 
