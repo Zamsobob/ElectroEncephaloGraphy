@@ -15,6 +15,11 @@ rawfolder = 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Raw_BIDS_ID\';
 ppfolder = [eegfolder 'EEG_Preprocessed\'];
 final = [ppfolder 'EEG_Final\'];
 csdfolder = [final 'CSD'];
+if~exist('EEG_Statistics', 'dir')
+    mkdir 'EEG_Statistics'
+end
+statfolder = [eegfolder 'EEG_Statistics'];
+ppfolder = [eegfolder 'EEG_Preprocessed\'];
 % csddir = [eegfolder 'CSDtoolbox'];
 
 % DEFINE THE SET OF SUBJECTS
@@ -119,7 +124,7 @@ EO_asymmetry = EO_asymmetry';
 EC_asymmetry = EC_asymmetry';
 
 % EXPORT FILES TO EXCEL AND SAVE IN STATISTICS FOLDER
-cd 'D:\MPI_LEMON\EEG_MPILMBB_LEMON\EEG_Statistics'
+cd (statfolder);
 xlswrite('FAAscores_CSD', EO_alphapower, 'EO Alpha Power');
 xlswrite('FAAscores_CSD', EC_alphapower, 'EC Alpha Power');
 xlswrite('FAAscores_CSD', EO_asymmetry, 'EO Asymmetry Scores');
