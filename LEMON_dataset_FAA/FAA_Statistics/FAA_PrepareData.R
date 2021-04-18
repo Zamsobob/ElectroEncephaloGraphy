@@ -1,4 +1,4 @@
-## IMPORTING FRONTAL ALPHA ASYMMETRY (FAA) SCORES, BEHAVIOURAL DATA (BIS-BAS), AND DEMOGRAPHICS
+## IMPORTING FRONTAL ALPHA ASYMMETRY (FAA) SCORES, BEHAVIOURAL DATA, AND DEMOGRAPHICS
 
 # LOAD REQUIRED PACKAGES
 library(readxl)
@@ -11,12 +11,13 @@ faadir <- "D:\\MPI_LEMON\\EEG_MPILMBB_LEMON\\EEG_Statistics\\FAAscores_CSD.xls"
 bisbasdir <- "D:\\MPI_LEMON\\Behavioural_Data_MPILMBB_LEMON\\Emotion_and_Personality_Test_Battery_LEMON\\BISBAS.csv"
 demodir <- "D:\\MPI_LEMON\\Behavioural_Data_MPILMBB_LEMON\\META_File_IDs_Age_Gender_Education_Drug_Smoke_SKID_LEMON.csv"
 uppsdir <- "D:/MPI_LEMON/Behavioural_Data_MPILMBB_LEMON/Emotion_and_Personality_Test_Battery_LEMON/UPPS.csv"
-eegsubsdir <- "D:\\MPI_LEMON\\EEG_MPILMBB_LEMON\\EEG_Statistics\\subslist.csv"
+eegsubsdir <- "D:/MPI_LEMON/EEG_MPILMBB_LEMON/EEG_Statistics/Diagnostics.csv"
 exportdirxls <- "D:\\MPI_LEMON\\EEG_MPILMBB_LEMON\\EEG_Statistics\\Data.xlsx"
 
 #---------------------------
-# IMPORT LIST OF SUBJECTS (N = 212)
-eegsubs <- read_csv(eegsubsdir, col_names = FALSE)
+# IMPORT LIST OF SUBJECTS (N = 211)
+eegsubs <- read_csv(eegsubsdir, col_names = TRUE)
+eegsubs <- eegsubs$Subject
 
 #---------------------------
 # IMPORT eyes-open (EO) and eyes-closed (EC) FRONTAL ASYMMETRY SCORES. DONT SEPARATE LATER IN MATLAB
@@ -35,13 +36,13 @@ bisbas <- read_csv(bisbasdir)
 bisbas <- bisbas[order(bisbas$ID),] # SORT IN ORDER OF SUBJECT ID
 
 # IDENTIFY SUBJECTS IN BIS-BAS DATA THAT DO NOT HAVE EEG-DATA
-differ <- setdiff(bisbas$ID, eegsubs$X1) # 9 SUBJECTS IDENTIFIED (3 REMOVED DURING PRE-PROCESSING)
-setdiff(eegsubs$X1, bisbas$ID) # NULL (0)
+differ <- setdiff(bisbas$ID, eegsubs$Subject) # 9 SUBJECTS IDENTIFIED (3 REMOVED DURING PRE-PROCESSING)
+setdiff(eegsubs$Subject, bisbas$ID) # NULL (0)
 
 # REMOVE THE 9 SUBJECTS FROM THE BIS-BAS DATA
 bisbas <- bisbas[- which(bisbas$ID %in% differ), ]
-setdiff(bisbas$ID, eegsubs$X1) # DIFFERENCE SHOULD NOW BE NULL
-setdiff(eegsubs$X1, bisbas$ID) # STILL NULL, AS IT SHOULD BE
+setdiff(bisbas$ID, eegsubs$Subject) # DIFFERENCE SHOULD NOW BE NULL
+setdiff(eegsubs$Subject, bisbas$ID) # STILL NULL, AS IT SHOULD BE
 
 # COMBINE FAA-SCORES AND BEHAVIOURAL DATA INTO ONE DATA.FRAME
 Data <- cbind(bisbas, FAA)
@@ -52,13 +53,13 @@ upps <- read_csv(uppsdir)
 upps <- upps[order(upps$ID),] # SORT IN ORDER OF SUBJECT ID
 
 # IDENTIFY SUBJECTS IN UPPS DATA THAT DO NOT HAVE EEG-DATA
-differ <- setdiff(upps$ID, eegsubs$X1) # 17 SUBJECTS IDENTIFIED (3 REMOVED DURING PRE-PROCESSING)
-setdiff(eegsubs$X1, upps$ID) # NULL (0)
+differ <- setdiff(upps$ID, eegsubs$Subject) # 17 SUBJECTS IDENTIFIED (3 REMOVED DURING PRE-PROCESSING)
+setdiff(eegsubs$Subject, upps$ID) # NULL (0)
 
 # REMOVE THE 9 SUBJECTS FROM THE BIS-BAS DATA
 upps <- upps[- which(upps$ID %in% differ), ]
-setdiff(upps$ID, eegsubs$X1) # DIFFERENCE SHOULD NOW BE NULL
-setdiff(eegsubs$X1, upps$ID) # STILL NULL, AS IT SHOULD BE
+setdiff(upps$ID, eegsubs$Subject) # DIFFERENCE SHOULD NOW BE NULL
+setdiff(eegsubs$Subject, upps$ID) # STILL NULL, AS IT SHOULD BE
 
 # REMOVE ID COLUMN AND COMBINE INTO ONE DATA.FRAME
 upps <- upps[,-1]
@@ -70,13 +71,13 @@ demographics <- read_csv(demodir)
 demographics <- demographics[order(demographics$ID),] # SORT IN ORDER OF SUBJECT ID
 
 # IDENTIFY SUBJECTS IN DEMOGRAPHICS DATA THAT DO NOT HAVE EEG-DATA, AND REMOVE THEM
-differ <- setdiff(demographics$ID, eegsubs$X1) # 17 SUBJECTS IDENTIFIED
-setdiff(eegsubs$X1, demographics$ID) # NULL (0)
+differ <- setdiff(demographics$ID, eegsubs$Subject) # 17 SUBJECTS IDENTIFIED
+setdiff(eegsubs$Subject, demographics$ID) # NULL (0)
 
 # REMOVE THE 17 SUBJECTS FROM THE DEMOGRAPHICS DATA
 demographics <- demographics[- which(demographics$ID %in% differ), ]
-setdiff(demographics$ID, eegsubs$X1) # DIFFERENCE SHOULD NOW BE NULL
-setdiff(eegsubs$X1, demographics$ID) # STILL NULL
+setdiff(demographics$ID, eegsubs$Subject) # DIFFERENCE SHOULD NOW BE NULL
+setdiff(eegsubs$Subject, demographics$ID) # STILL NULL
 
 # REMOVE ID COLUMN AND COMBINE ALL DATA INTO ONE DATA.FRAME
 demographics <- demographics[,-1]
