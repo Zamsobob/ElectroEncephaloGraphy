@@ -1,4 +1,4 @@
-% Script for preprocessing resting-state EEG data from the LEMON dataset
+% Script for preprocessing resting-state EEG data from the LEMON dataset (part 1)
 % The pre-processing pipeline was developed for extraction of frontal alpha asymmetry (FAA)
 % It is based on recommended guidelines from Smith et al. (2017)
 % 
@@ -19,7 +19,7 @@ save_everything = 1;
 
 % SET PATHS
 addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2021.0'); % EEGLAB TO PATH
-eegfolder = [pwd filesep]; % EEG_MPILMBB_LEMON. THIS IS WHERE THIS SCRIPT IS
+eegfolder = [pwd filesep]; % EEG_MPILMBB_LEMON. PATH TO SCRIPTS
 rawfolder = [eegfolder 'EEG_Raw_BIDS_ID\']; % RAW FILES
 localizer = [eegfolder 'EEG_Localizer_BIDS_ID\Channel_Loc_62_EOG.ced']; % PATH TO CHANNEL LOCATIONS
 file_ext = '.vhdr'; % FILE EXTENSION OF RAW FILES
@@ -47,9 +47,10 @@ savevars = [ppfolder 'Saved_Variables'];
 cd (rawfolder);
 subject_list=dir(['*/*' file_ext]);
 subject_list={subject_list.name};
-diagnostTable = cell(length(subject_list), 3); % INITIALIZE DIAGNOSTIC VARIABLE
+% diagnostTable = cell(length(subject_list), 3); % INITIALIZE DIAGNOSTIC VARIABLE
+% listsubjects = cell(length(subject_list), 1);
 
-parfor s = 1:length(subject_list) % PARALLEL COMPUTING TOOLBOX (parfor)
+parfor s = 182:184 %:length(subject_list) % PARALLEL COMPUTING TOOLBOX (parfor)
     
     % CURRENT SUBJECT
     subject = subject_list{s};
@@ -198,112 +199,5 @@ parfor s = 1:length(subject_list) % PARALLEL COMPUTING TOOLBOX (parfor)
     EEG = pop_saveset(EEG, 'filename',[subject '_ICA_Weights.set'], ...
         'filepath', rsdir);
 end
-
-for s = 1:length(subject_list)
-    
-    % CURRENT SUBJECT
-    subject = subject_list{s};
-    subject = extractBefore(subject, file_ext);
-    
-    % LOAD FILES WITH ICA WEIGHTS
-    EEG = pop_loadset('filename',[subject '_ICA_Weights.set'],'filepath', rsdir);
-    
-    % RUN ICLABEL(Pion-Tonachini et al., 2019) TO LABEL COMPONENTS
-    EEG = pop_iclabel(EEG, 'default');
-     
-    % MARK COMPONENTS WITH >= 90% PROBABILITY OF BEING NON-BRAIN COMPONENTS
-    EEG = pop_icflag(EEG, ...
-        [NaN NaN;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1]);
-    EEG.setname = [subject '_ICA_marked']; % NAME FOR DATASET MENU
-     
-    % SAVE DATA WITH COMPONENTS MARKED FOR REMOVAL
-    if (save_everything)
-        EEG = pop_saveset(EEG, ...
-            'filename',[subject '_ICA_Marked.set'], ...
-            'filepath', rsdir);
-    end
-    
-    numcomponents(s) = length(EEG.gcompreject)
-    
-    % REMOVE SELECTED COMPONENTS
-    EEG = pop_subcomp(EEG, ...
-        [find(EEG.reject.gcompreject == 1)], ...
-        0);
-    EEG.setname = [subject '_ICA_Removed']; % NAME FOR DATASET MENU
-     
-    % SAVE DATA WITH COMPONENTS REMOVED
-    if (save_everything)
-        EEG = pop_saveset(EEG, ...
-            'filename',[subject '_ICA_Removed.set'], ...
-            'filepath', rsdir);
-    end
-     
-    %% POST ICA - INTERPOLATION
-     
-    % INTERPOLATE CHANNELS USING ORIGINAL CHANNEL LOCATIONS
-    EEG = pop_interp(EEG, originalchanlocs, 'spherical');
-    EEG.setname = [subject '_Interp']; % NAME FOR DATASET MENU
-     
-    % SAVE ICA PROCESSED DATA
-    if (save_everything)
-        EEG = pop_saveset(EEG, ...
-            'filename',[subject '_Interp.set'], ...
-            'filepath', rsdir);
-    end
-    
-    %% CREATING OVERLAPPING EPOCHS
-    
-    % CONCATENATE THE EPOCHS INTO CONTINUOUS DATA BEFORE CREATING OVERLAPPING EPOCHS
-    EEG = pop_epoch2continuous(EEG, 'Warning', 'off');
-    
-    % REMOVE ALL EVENT-VALUES
-    EEG = pop_editeventvals(EEG,'delete', 1:length(EEG.event));
-    
-    % CREATE EPOCHS OF 2 SEC, WITH 75% OVERLAP (0.5 s RECURRENCE) 
-    EEG = eeg_regepochs(EEG, 'recurrence', 0.5, ...
-        'limits', [0 2], ...
-        'rmbase', NaN); 
-    EEG.setname = [subject '_Epoch']; % NAME FOR DATASET MENU
-    
-    % SAVE DATA WITH OVERLAPPING EPOCHS
-    if (save_everything)
-    EEG = pop_saveset(EEG, 'filename',[subject '_Epoch.set'], ...
-        'filepath', rsdir);
-    end
-    
-    % REMOVE VEOG CHANNEL
-    EEG = pop_select(EEG, ...
-        'nochannel', {'VEOG'});
-    EEG.setname = [subject '_Preprocessed.set']; % NAME FOR DATASET MENU
-     
-    % SAVE PRE-PROCESSED DATA
-    EEG = pop_saveset(EEG, ...
-        'filename',[subject '_Preprocessed.set'], ...
-        'filepath', final);
-    
-    % STORE NUMBER OF EPOCHS AND INTERPOLATED CHANNELS FOR EACH SUBJECT
-    listsubjects(s) = {subject}
-    numepochs(s) = {length(EEG.epoch)};
-    
-end
-
-% CREATE TABLE OF EPOCHS AND INTERPOLATED CHANNELS PER SUBJECT
-listsubjects = listsubjects';
-interchans = interchans';
-numepochs = numepochs';
-diagnostTable(:, 1) = listsubjects;
-diagnostTable(:, 2) = interchans;
-diagnostTable(:, 3) = numepochs;
-diagnostTable = cell2table(diagnostTable);
-diagnostTable.Properties.VariableNames = {'subject', 'interpolated_Chans', 'number_Epochs_Left'};
-
-% numcomponents
-
-% SAVE INTERPOLATED CHANNELS AS .MAT IN FOLDER Saved_Variables
-cd (savevars);
-save Diagnostics.mat diagnostTable
-writetable(diagnostTable, 'Diagnostics.csv', 'Delimiter',',','QuoteStrings',false)
-save InterpolatedChannels.mat interchans
-save NumberOfEpochs.mat numepochs
 
 fprintf('\n\n\n**** LEMON PREPROCESSING 1 FINISHED ****\n\n\n');
