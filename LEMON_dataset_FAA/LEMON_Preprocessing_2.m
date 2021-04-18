@@ -38,14 +38,13 @@ subject_list=dir(['*/*' file_ext]);
 subject_list={subject_list.name};
 
 % INITIALIZE VARIABLES FOR TABLE OF EPOCHS AND INTERPOLATED CHANNELS PER SUBJECT
-% diagnostTable = cell(length(subject_list), 4);
-% listsubjects = cell(length(subject_list), 1);
-% numcomponents = zeros(length(subject_list), 1);
-% numepochs = cell(length(subject_list), 1);
-% interchans = cell(length(subject_list), 1);
-diagnostTable = cell(2 , 4);
+diagnostTable = cell(length(subject_list), 4);
+listsubjects = cell(length(subject_list), 1);
+numcomponents = zeros(length(subject_list), 1);
+numepochs = cell(length(subject_list), 1);
+interchans = cell(length(subject_list), 1);
 
-for s = 1:2 %:length(subject_list)
+for s = 1:length(subject_list)
     
     % CURRENT SUBJECT
     subject = subject_list{s};
@@ -149,6 +148,7 @@ for s = 1:2 %:length(subject_list)
 end
 
 % CREATE TABLE OF EPOCHS, INTERPOLATED CHANNELS, AND REMOVED INDEPENDENT COMPONENTS PER SUBJECT
+cd (savevars);
 listsubjects = listsubjects';
 interchans = interchans';
 numepochs = numepochs';
@@ -160,11 +160,6 @@ diagnostTable(:, 4) = numcomponents;
 diagnostTable = cell2table(diagnostTable);
 diagnostTable.Properties.VariableNames = {'Subject', 'Interpolated_Chans', 'Number_Overlapping_Epochs', 'Removed_ICs'};
 
-% SAVE INTERPOLATED CHANNELS AS .MAT IN FOLDER Saved_Variables
-cd (savevars);
-% save Diagnostics.mat diagnostTable
-writetable(diagnostTable, 'Diagnostics.csv', 'Delimiter',',','QuoteStrings',false)
-% save InterpolatedChannels.mat interchans
-% save NumberOfEpochs.mat numepochs
+writetable(diagnostTable, 'Diagnostics.csv', 'Delimiter',',','QuoteStrings',false) % SAVE DIAGNOSTICS TABLE AS CSV
 
 fprintf('\n\n\n**** LEMON PREPROCESSING 2 FINISHED ****\n\n\n');
