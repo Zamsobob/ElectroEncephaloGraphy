@@ -51,10 +51,8 @@ for s = 1:length(subject_list)
     %% ANALYSIS OF ALL CHANNELS
     
     % COMPUTE POWER SPECTAL DENSITY (PSD) OF THE EPOCHS FOR ALL CHANNELS
-    % PADDED WITH 6 ZEROS ON EACH SIDE FOR EPOCHS TO HAVE 2^N DATA POINTS
     [spect, freqs] = spectopo(EEG.data, ...
         EEG.pnts, EEG.srate, ...
-        'nfft', 512, ...
         'plot', 'off');
     
     % OUTPUT IS IN dB / cm^2 -> 10*log10(uV^2/Hz) / cm^2
