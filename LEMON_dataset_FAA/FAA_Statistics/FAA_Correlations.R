@@ -2,7 +2,8 @@
 
 # Load required packages
 library(readxl)
-library("ggpubr")
+library(ggpubr)
+library(corrplot)
 
 # Path to dataLemon file
 exportdirxls <- "D:\\MPI_LEMON\\EEG_MPILMBB_LEMON\\EEG_Statistics\\DataLemon.xlsx"
@@ -89,20 +90,24 @@ ggscatter(Data, x = "FAA.F8F7", y = "FAA.F6F5",
 #### Matrices of Pearson and Spearman correlations
 
 ##### Pearson
-cor.data <- rcorr(as.matrix(Data[, - c(19:21)], type = "pearson"))
-View(round(cor.data[["r"]], digits = 3))
-View(round(cor.p.p <- cor.data[["P"]], digits = 3)) # p-values
+cor.data <- corr.test(Data[, - c(19:21)],y = NULL, method="pearson",
+                        adjust="fdr", alpha=0.05, minlength=10)
+View(cor.data)
 
 ##### Spearman
-cor.data.s <- rcorr(as.matrix(Data[, - c(19:21)], type = "spearman"))
-View(round(cor.data.s[["r"]], digits = 3))
-View(round(cor.s.p <- cor.data.s[["P"]], digits = 3)) # p-values
+cor.data.s <- corr.test(Data[, - c(19:21)],y = NULL, method="spearman",
+                      adjust="fdr", alpha=0.05, minlength=10)
+View(cor.data.s)
 
-##### Correct for multiple tests (FDR)
+##### Construct matrix of FDR corrected p-values
+###### Spearman's rho
 cor.s.p.adj <- matrix(ncol = ncol(cor.s.p), nrow = nrow(cor.s.p))
 for(i in 1:ncol(cor.s.p)){
     cor.s.p.adj[,i] <- p.adjust(cor.s.p[,i], method = "fdr")
 }
+colnames(cor.s.p.adj) <- colnames(cor.data.s$r)
+row.names(cor.s.p.adj) <- colnames(cor.data.s$r)
+View(round(cor.s.p.adj, 3))
 
 #### Correlation plot, with Pearson correlations above abs(0.15)
 cont.data <- Data[, - c(19:21)]
@@ -135,3 +140,6 @@ corr_simple <- function(data=Data, sig=0.15){
     corrplot(mtx_corr, is.corr=FALSE, tl.col="black", na.label=" ")
 }
 corr_simple(cont.data)
+
+    
+# END OF SCRIPT
