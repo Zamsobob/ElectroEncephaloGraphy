@@ -28,9 +28,8 @@ file_ext = '.vhdr'; % FILE EXTENSION OF RAW FILES
 % FOLDERS FOR PREPROCESSED DATA
 ppfolder = [eegfolder 'EEG_Preprocessed\'];
 rsdir = [ppfolder 'EEG_Intermediate'];
-cd (ppfolder);
 final = [ppfolder 'EEG_Final'];
-savevars = [ppfolder 'Saved_Variables'];
+statdir = [eegfolder 'EEG_Statistics'];
 
 % CREATE LIST OF SUBJECTS TO LOOP THROUGH
 cd (rawfolder);
@@ -40,7 +39,7 @@ subject_list={subject_list.name};
 % INITIALIZE VARIABLES FOR TABLE OF EPOCHS AND INTERPOLATED CHANNELS PER SUBJECT
 diagnostTable = cell(length(subject_list), 4);
 listsubjects = cell(length(subject_list), 1);
-numcomponents = zeros(length(subject_list), 1);
+numcomponents = cell(length(subject_list), 1);
 numepochs = cell(length(subject_list), 1);
 interchans = cell(length(subject_list), 1);
 
@@ -50,10 +49,8 @@ for s = 1:length(subject_list)
     subject = subject_list{s};
     subject = extractBefore(subject, file_ext);
     
-    % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
-    subjectfolder = [rawfolder subject '\'];
-    
-    EEG = pop_loadset('filename',[subject '_Filt.set'],'filepath', rsdir); % DATA BEFORE ASR
+    % LOAD DATA BEFORE ASR
+    EEG = pop_loadset('filename',[subject '_Filt.set'],'filepath', rsdir);
     originalchanlocs = EEG.chanlocs; % FOR INTERPOLATION LATER
     oldchans = {EEG.chanlocs.labels};
     
@@ -68,7 +65,7 @@ for s = 1:length(subject_list)
      
     % MARK COMPONENTS WITH >= 90% PROBABILITY OF BEING NON-BRAIN COMPONENTS
     EEG = pop_icflag(EEG, ...
-        [NaN NaN;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1;0.9 1]);
+        [NaN NaN;0.9 1;0.9 1;NaN NaN;NaN NaN;NaN NaN;NaN NaN]);
     EEG.setname = [subject '_ICA_marked']; % NAME FOR DATASET MENU
     EEG = eeg_checkset(EEG, 'ica');
      
@@ -80,7 +77,7 @@ for s = 1:length(subject_list)
     end
     
     EEG = pop_loadset('filename',[subject '_ICA_Marked.set'],'filepath', rsdir);
-    numcomponents(s) = {length(find(EEG.reject.gcompreject == 1))}; % SAVE # OF REMOVED ICs
+    numcomponents(s) = {length(find(EEG.reject.gcompreject == 1))}; % SAVE NR. OF REMOVED ICs
     
     % REMOVE SELECTED COMPONENTS
     EEG = pop_subcomp(EEG, ...
@@ -148,7 +145,7 @@ for s = 1:length(subject_list)
 end
 
 % CREATE TABLE OF EPOCHS, INTERPOLATED CHANNELS, AND REMOVED INDEPENDENT COMPONENTS PER SUBJECT
-cd (savevars);
+cd (statdir);
 listsubjects = listsubjects';
 interchans = interchans';
 numepochs = numepochs';
@@ -160,6 +157,28 @@ diagnostTable(:, 4) = numcomponents;
 diagnostTable = cell2table(diagnostTable);
 diagnostTable.Properties.VariableNames = {'Subject', 'Interpolated_Chans', 'Number_Overlapping_Epochs', 'Removed_ICs'};
 
-writetable(diagnostTable, 'Diagnostics.csv', 'Delimiter',',','QuoteStrings',false) % SAVE DIAGNOSTICS TABLE AS CSV
+% SAVE DIAGNOSTICS TABLE WITHOUT EXCLUDED SUBJECTS AS CSV FOR R DATA PREPARING
+writetable(diagnostTable, 'Diagnostics.csv', 'Delimiter',',','QuoteStrings',false)
 
+% AUTOMATIC EXCLUSION OF SUBJECTS. SUBJECTS WITH OVER 15 PER CENT INTERPOLATED CHANNELS AND LESS THAN
+% 100 EPOCHS LEFT ARE EXCLUDED 
+cd(statdir);
+diagnostics = readcell('Diagnostics.csv', "NumHeaderLines", 1);
+diag = cell2mat(diagnostics(:,2:end));
+exclude1 = find(diag(:,1) > (0.15 * EEG.nbchan)); % more than 15% interp chans
+exclude2 = find(diag(:,2) < 100); % less than 100 epochs
+exclude = [exclude1 exclude2]; % concatenate
+excludesubs = diagnostics(exclude,1); % subjects to exclude
+diagnostics(exclude,:) = []; % excluded
+excluded = cell(length(subject_list) - length(exclude), 1); 
+excluded([1:3],:) = excludesubs; % to store removed subjects
+diagnostics(:,5) = excluded;
+diagnostics = cell2table(diagnostics);
+diagnostics.Properties.VariableNames = {'Subject', 'Interpolated_Chans', ...
+    'Number_Overlapping_Epochs', 'Removed_ICs', 'Excluded_Subjects'};
+
+% SAVE DIAGNOSTICS TABLE WITH EXCLUDED SUBJECTS AS CSV FOR R DATA PREPARING
+writetable(diagnostics, 'DiagnosticsExlSubs.csv', 'Delimiter',',','QuoteStrings',false)
+
+cd (eegfolder);
 fprintf('\n\n\n**** LEMON PREPROCESSING 2 FINISHED ****\n\n\n');
