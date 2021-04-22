@@ -36,7 +36,7 @@ cd (rawfolder);
 subject_list=dir(['*/*' file_ext]);
 subject_list={subject_list.name};
 
-% INITIALIZE VARIABLES FOR TABLE OF EPOCHS AND INTERPOLATED CHANNELS PER SUBJECT
+% INITIALIZE VARIABLES FOR DIAGNOSTICS
 diagnostTable = cell(length(subject_list), 4);
 listsubjects = cell(length(subject_list), 1);
 numcomponents = cell(length(subject_list), 1);
@@ -154,31 +154,23 @@ diagnostTable(:, 1) = listsubjects;
 diagnostTable(:, 2) = interchans;
 diagnostTable(:, 3) = numepochs;
 diagnostTable(:, 4) = numcomponents;
-diagnostTable = cell2table(diagnostTable);
-diagnostTable.Properties.VariableNames = {'Subject', 'Interpolated_Chans', 'Number_Overlapping_Epochs', 'Removed_ICs'};
-
-% SAVE DIAGNOSTICS TABLE WITHOUT EXCLUDED SUBJECTS AS CSV FOR R DATA PREPARING
-writetable(diagnostTable, 'Diagnostics.csv', 'Delimiter',',','QuoteStrings',false)
 
 % AUTOMATIC EXCLUSION OF SUBJECTS. SUBJECTS WITH OVER 15 PER CENT INTERPOLATED CHANNELS AND LESS THAN
 % 100 EPOCHS LEFT ARE EXCLUDED 
-cd(statdir);
-diagnostics = readcell('Diagnostics.csv', "NumHeaderLines", 1);
-diag = cell2mat(diagnostics(:,2:end));
-exclude1 = find(diag(:,1) > (0.15 * EEG.nbchan)); % more than 15% interp chans
-exclude2 = find(diag(:,2) < 100); % less than 100 epochs
+diagnost = cell2mat(diagnostTable(:,2:end));
+exclude1 = find(diagnost(:,1) > (0.15 * EEG.nbchan)); % more than 15% interp chans
+exclude2 = find(diagnost(:,2) < 100); % less than 100 epochs
 exclude = [exclude1 exclude2]; % concatenate
-excludesubs = diagnostics(exclude,1); % subjects to exclude
-diagnostics(exclude,:) = []; % excluded
-excluded = cell(length(subject_list) - length(exclude), 1); 
-excluded([1:3],:) = excludesubs; % to store removed subjects
-diagnostics(:,5) = excluded;
-diagnostics = cell2table(diagnostics);
-diagnostics.Properties.VariableNames = {'Subject', 'Interpolated_Chans', ...
+excludesubs = diagnostTable(exclude,1); % subjects to exclude
+excluded = cell(length(subject_list), 1);
+excluded([1:length(exclude)],:) = excludesubs; % to store removed subjects
+diagnostTable(:,5) = excluded;
+diagnostTable = cell2table(diagnostTable);
+diagnostTable.Properties.VariableNames = {'Subject', 'Interpolated_Chans', ...
     'Number_Overlapping_Epochs', 'Removed_ICs', 'Excluded_Subjects'};
 
-% SAVE DIAGNOSTICS TABLE WITH EXCLUDED SUBJECTS AS CSV FOR R DATA PREPARING
-writetable(diagnostics, 'DiagnosticsExlSubs.csv', 'Delimiter',',','QuoteStrings',false)
+% SAVE DIAGNOSTICS TABLE WITH EXCLUDED SUBJECTS AS IN COULMN 5 AS CSV FOR R DATA PREPARING
+writetable(diagnostTable, 'Diagnostics.csv', 'Delimiter',',','QuoteStrings',false)
 
 cd (eegfolder);
 fprintf('\n\n\n**** LEMON PREPROCESSING 2 FINISHED ****\n\n\n');
