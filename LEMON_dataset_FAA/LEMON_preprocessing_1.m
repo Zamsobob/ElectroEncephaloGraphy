@@ -1,16 +1,27 @@
-% Script for preprocessing resting-state EEG data from the LEMON dataset (part 1)
-% The pre-processing pipeline was developed for extraction of frontal alpha asymmetry (FAA)
-% It is based on recommended guidelines from Smith et al. (2017)
+% Script for preprocessing resting-state EEG data from the LEMON dataset
+% The pre-processing pipeline was developed for the extraction of frontal alpha asymmetry (FAA)
+% It is based on recommended guidelines from Smith et al. (2017) and
+% designed to be fully automatic, for the purpose of reproducibility.
+% 
+% 
+% Before running this script, 7 subjects were removed from rawfolder due to missing data:
+% sub-010203. The VMRK-file is empty. 
+% sub-010285. The VMRK-file is missing markers, cannot be read by EEGLAB
+% sub-010235, sub-010237, sub-010259, sub-010281, & sub-010293. No data in files.
+% 
+% 
+% EEGLAB PREFERENCES (STORE 1 DATASET AND DOUBLE PRECISSION) USED:
+% pop_editoptions('option_storedisk', 1);
+% pop_editoptions('option_single', 0);
+%
+% SET EEGLAB TO PATH:
+% addpath(PathToEEGLAB);
 % 
 % Sources:
 % https://doi.org/10.1038/sdata.2018.308
 % https://doi.org/10.1016/j.ijpsycho.2016.11.005)
 % 
-% EEGLAB PREFERENCES (STORE 1 DATASET AND DOUBLE PRECISSION) USED:
-% pop_editoptions('option_storedisk', 1);
-% pop_editoptions('option_single', 0);
-
-
+% 
 %% INITIAL SETUP
 
 % SET VARIABLE TO 1 TO SAVE INTERMEDIATE STEPS. SET TO 0 TO SAVE
@@ -18,7 +29,6 @@
 save_everything = 1;
 
 % SET PATHS
-addpath('C:\Users\Mar Nil\Desktop\MATLABdirectory\eeglab2021.0'); % EEGLAB TO PATH
 eegfolder = [pwd filesep]; % EEG_MPILMBB_LEMON. PATH TO SCRIPTS
 rawfolder = [eegfolder 'EEG_Raw_BIDS_ID\']; % RAW FILES
 localizer = [eegfolder 'EEG_Localizer_BIDS_ID\Channel_Loc_62_EOG.ced']; % PATH TO CHANNEL LOCATIONS
@@ -32,6 +42,10 @@ if~exist('EEG_Preprocessed', 'dir')
 end
 ppfolder = [eegfolder 'EEG_Preprocessed\'];
 rsdir = [ppfolder 'EEG_Intermediate'];
+
+if~exist('EEG_Statistics', 'dir')
+    mkdir 'EEG_Statistics'
+statdir = [eegfolder 'EEG_Statistics'];
 cd (ppfolder);
 
 if ~exist('EEG_Final', 'dir')
@@ -39,18 +53,12 @@ if ~exist('EEG_Final', 'dir')
 end
 final = [ppfolder 'EEG_Final'];
 
-if ~exist('Saved_Variables', 'dir')
-    mkdir Saved_Variables
-end
-savevars = [ppfolder 'Saved_Variables'];
 % CREATE LIST OF SUBJECTS TO LOOP THROUGH
 cd (rawfolder);
 subject_list=dir(['*/*' file_ext]);
 subject_list={subject_list.name};
-% diagnostTable = cell(length(subject_list), 3); % INITIALIZE DIAGNOSTIC VARIABLE
-% listsubjects = cell(length(subject_list), 1);
 
-parfor s = 182:184 %:length(subject_list) % PARALLEL COMPUTING TOOLBOX (parfor)
+parfor s = 1:length(subject_list) % PARALLEL COMPUTING TOOLBOX (parfor)
     
     % CURRENT SUBJECT
     subject = subject_list{s};
@@ -58,7 +66,7 @@ parfor s = 182:184 %:length(subject_list) % PARALLEL COMPUTING TOOLBOX (parfor)
     
     fprintf('subject %d: %s\n', s, subject);
     
-    % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S DATA
+    % PATH TO THE FOLDER CONTAINING THE CURRENT SUBJECT'S RAW DATA
     subjectfolder = [rawfolder subject filesep];
     
     % IMPORT RAW DATA
@@ -91,7 +99,6 @@ parfor s = 182:184 %:length(subject_list) % PARALLEL COMPUTING TOOLBOX (parfor)
         'filepath', rsdir);
     end
     
-    %% PREPROCESSING
     %% FILTERING
     
     % HIGH-PASS FILTER 1 HZ. 827 POINTS. CUTOFF FREQUENCY (~6dB): 0.5 Hz.
@@ -155,9 +162,6 @@ parfor s = 182:184 %:length(subject_list) % PARALLEL COMPUTING TOOLBOX (parfor)
         'Distance', 'Euclidian', ...
         'WindowCriterionTolerances', [-Inf 7] );
     EEG.setname = [subject '_ASR']; % NAME FOR DATASET MENU
-    
-    % STORE LIST OF REMOVED CHANNELS FOR EACH SUBJECT
-    interchans(s) = {chandiff};
 
     % SAVE DATA
     if (save_everything)
