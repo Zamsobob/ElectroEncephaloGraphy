@@ -1,5 +1,5 @@
-function subjFolderPaths = setupSubjectFolders(projectPath) % ppDir
-% subjFolderPaths = setupSubjectFolders(projectPath, ppDir)
+function subjFolderPaths = setupSubjectFolders(projectPath)
+% subjFolderPaths = setupSubjectFolders(projectPath)
 % Sets up individual subject folders inside the specified folder. Also
 % returns a cell array containing the paths of the created subject folders.
 %
