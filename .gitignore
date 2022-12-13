@@ -3,4 +3,6 @@
 .RData
 .Ruserdata
 ElectroEncephaloGraphy.Rproj
+
 local/
+data/
